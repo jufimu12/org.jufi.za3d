@@ -2,8 +2,11 @@ package org.jufi.za3d;
 
 import java.nio.FloatBuffer;
 
+import org.jufi.lwjglutil.ResourceLoader;
 import org.lwjgl.BufferUtils;
+
 import static org.lwjgl.opengl.GL11.*;
+
 import org.lwjgl.opengl.GL11;
 
 public class Sentry extends Block {
@@ -42,7 +45,7 @@ public class Sentry extends Block {
         float zmin = pz - 0.5f;
         float zmax = pz + 0.5f;
 
-    	glBindTexture(GL_TEXTURE_2D, 0);
+    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
         GL11.glBegin(GL_QUADS);
 	        FloatBuffer color = BufferUtils.createFloatBuffer(4);
 	        color.put(cr).put(cg).put(cb).put(1).flip();

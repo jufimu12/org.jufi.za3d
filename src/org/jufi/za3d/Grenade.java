@@ -1,5 +1,7 @@
 package org.jufi.za3d;
 
+import org.jufi.lwjglutil.*;
+
 public class Grenade {
 	private float px, py, pz, vx, vy, vz, burstspeed = 0.2f;
 	private int timer = 480;
@@ -13,10 +15,10 @@ public class Grenade {
 		this.pz = pz;
 	}
 	
-	public boolean tick(float[][] physmap) {
+	public boolean tick(PhysMap physmap) {
 		timer--;
 		vy -= 0.0002f;
-		if (!colliding(physmap)) {
+		if (!physmap.collides(px, py, pz)) {
 			px += vx;
 			py += vy;
 			pz += vz;
@@ -54,17 +56,5 @@ public class Grenade {
 		float vx = (float) -Math.sin(Math.toRadians(ry)) * vxz;
 		float vz = (float) -Math.cos(Math.toRadians(ry)) * vxz;
 		return new Grenade(vx, vy, vz, px, py, pz);
-	}
-	
-	public boolean collidesWith(float[] points) {
-		// float[] points = {xmin, xmax, ymin, ymax, zmin, zmax};
-		if (px > points[0] && px < points[1] && py > points[2] && py < points[3] && pz > points[4] && pz < points[5]) return true;
-		else return false;
-	}
-	public boolean colliding(float[][] physmap) {
-		for (float[] physobj : physmap) {
-			if (collidesWith(physobj)) return true;
-		}
-		return false;
 	}
 }

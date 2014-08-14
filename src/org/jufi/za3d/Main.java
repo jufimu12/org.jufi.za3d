@@ -29,6 +29,10 @@ public class Main {
 		launcher = new GameLauncher();
 	}
 	
+	public static void onExit() {
+		Main.printInfo("Exiting ZombieApocalypse 3D");
+		if (AL.isCreated()) AL.destroy();
+	}
 	public static void exit() {
 		Main.printInfo("Exiting ZombieApocalypse 3D");
 		if (Display.isCreated()) Display.destroy();
@@ -36,7 +40,7 @@ public class Main {
 		System.exit(0);
 	}
 	public static void exit(int arg0) {
-		Main.printInfo("Exiting ZombieApocalypse 3D");
+		Main.printInfo("Exiting ZombieApocalypse 3D (" + arg0 + ")");
 		if (Display.isCreated()) Display.destroy();
 		if (AL.isCreated()) AL.destroy();
 		System.exit(arg0);

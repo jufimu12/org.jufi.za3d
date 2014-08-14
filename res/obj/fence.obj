@@ -1,4 +1,4 @@
-mtllib obj/fence.mtl
+mtllib fence.mtl
 o Fence
 v 0.000000 -0.000000 0.100000
 v -0.075000 0.000000 0.075000

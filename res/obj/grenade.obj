@@ -1,4 +1,4 @@
-mtllib obj/grenade.mtl
+mtllib grenade.mtl
 o Grenade
 v 0.009701 0.245852 -0.018107
 v 0.009701 0.209803 -0.020711

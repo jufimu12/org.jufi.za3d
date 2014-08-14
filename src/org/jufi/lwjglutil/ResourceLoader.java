@@ -22,7 +22,9 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.util.WaveData;
 
 public class ResourceLoader {
-	private static int generateId() {// Texture
+	public static int whitePixelTexID;// Texture
+	
+	private static int generateId() {
 		return glGenTextures();
 	}
 	public static int loadTexture(String path) throws IOException {
@@ -79,8 +81,24 @@ public class ResourceLoader {
 		
 		return buffer;
 	}
+	public static void initWhitePixelTexID() {
+		int texId = generateId();
+		
+		ByteBuffer buffer = BufferUtils.createByteBuffer(4);
+		buffer.put((byte) -1).put((byte) -1).put((byte) -1).put((byte) -1).flip();
+		glBindTexture(GL_TEXTURE_2D, texId);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		whitePixelTexID = texId;
+	}
 	
-	public static int[] loadShader(String vertexShaderPath, String fragmentShaderPath) throws IOException {
+	public static int[] loadShader(String vertexShaderPath, String fragmentShaderPath) throws IOException {// Shader
 		int shaderProgram = glCreateProgram();
 		int vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -130,7 +148,7 @@ public class ResourceLoader {
 		return source;
 	}
 	
-	public static float[][] loadPhysMap(String path, boolean forPlayer) throws IOException {
+	public static float[][] loadPhysMap(String path, boolean forPlayer) throws IOException {// Physics
 		BufferedReader res = new BufferedReader(new FileReader(path));
 		ArrayList<float[]> vertices = new ArrayList<float[]>();
 		ArrayList<float[]> objects = new ArrayList<float[]>();

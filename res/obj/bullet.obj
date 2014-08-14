@@ -1,4 +1,4 @@
-mtllib obj/bullet.mtl
+mtllib bullet.mtl
 o Bullet
 v 0.000000 -0.010395 -0.000000
 v 0.000000 -0.007796 -0.007796

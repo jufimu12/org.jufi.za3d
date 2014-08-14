@@ -1,31 +1,27 @@
 package org.jufi.za3d;
 
 import org.jufi.lwjglutil.*;
+import org.jufi.lwjglutil.Camera.CameraMode;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.input.Keyboard.*;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
-import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.openal.AL;
 import org.lwjgl.opengl.Display;
 
-public class Game extends Thread {
-	private Camera cam;
+public class Game extends org.jufi.lwjglutil.Engine {
 	private ArrayList<Block> blocks = new ArrayList<Block>();
 	private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 	private ArrayList<Grenade> grenades = new ArrayList<Grenade>();
 	private ArrayList<Zombie> zombies = new ArrayList<Zombie>();
-	private FPSCounter fps = new FPSCounter();
-	private float[][] physmap, pphysmap;
+	private PhysMap physmap, pphysmap;
 	private float spawnSpeed = 1, backgred = 0, runtimeleft = 0, runtimereg = 0.1f, runfactor = 2, spawnSpeedAdd, fallspeed = 0.1f, accuracy = 6, recoil = 0;
 	private int shootCooldown = 0, shootSpeed = 2, spawnCooldown = 0, defaultBulletHealth = 1, bulletSpeed = 1, multiShot = 1, maxHp = 100, armor = 5, grenadeamt = 1, runtimecap = 360;
 	private int shootSpeedCost = 40, accuracylvl = 6, recoillvl = 10;
@@ -33,11 +29,11 @@ public class Game extends Thread {
 	private int[] items = {0, 0, 0, 1};
 	private String[] itemnames = {"nothing", "Sentrygun", "C4", "Web"};
 	private short selecteditem = 0;
-	private long score = 0, coins = 150, medikitCost = 10;
-	private boolean lctrlDown = false, gamePaused = true, gameOver = false, aiming = false, initfullscreen = false;
+	private long score = 0, coins = 1500000, medikitCost = 10;
+	private boolean lctrlDown = false, gamePaused = true, gameOver = false, aiming = false, initfullscreen = false, enable_shader;
 	private boolean menulmousedown = false, canmodifyrunfactor = false, runfasterdown = false, runslowerdown = false, fDown = false, jetpack = false;
 	
-	public Game(float spawnSpeedAdd, float coinsFactor, int resMode) {
+	public Game(float spawnSpeedAdd, float coinsFactor, int resMode, boolean shader) {
 		switch (resMode) {
 		case 0:
 			initresX = 1280;
@@ -62,342 +58,19 @@ public class Game extends Thread {
 	}
 		this.spawnSpeedAdd = spawnSpeedAdd;
 		this.coins = (long) (coinsFactor * coins);
+		this.enable_shader = shader;
 	}
-	
-	public void run() {
-		FloatBuffer lPos = BufferUtils.createFloatBuffer(4);// Init Camera
-		lPos.put(-0.8f).put(0.5f).put(-1).put(0).flip(); // x y z i; light at 0)infinity 1)a point
-		cam = new Camera(70, 1600, 900, initresX, initresY, lPos, initfullscreen, initfullscreen, true, true);
-		try {
-			cam.initDisplay();
-		} catch (Exception e) {
-			e.printStackTrace();
-			Main.exit(1);
-		}
-		cam.init();
-		cam.init2d();
-		SimpleText.drawString("LOADING", 770, 450);
-		Display.update();
-		
-		try {// Load Resources
-			Main.tex_zombey = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/z0mb3y.png");
-			Main.tex_floor = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/floor.png");
-			Main.tex_skybox = new int[5];
-			Main.tex_skybox[0] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_top.png");
-			Main.tex_skybox[1] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_front.png");
-			Main.tex_skybox[2] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_left.png");
-			Main.tex_skybox[3] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_back.png");
-			Main.tex_skybox[4] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_right.png");
-			
-			
-			Main.obj_gun = new Model[3];
-			Main.obj_gun[0] = new Model(System.getProperty("user.dir") + "/res/obj/gun0.obj");
-			Main.obj_gun[1] = new Model(System.getProperty("user.dir") + "/res/obj/gun1.obj");
-			Main.obj_gun[2] = new Model(System.getProperty("user.dir") + "/res/obj/gun2.obj");
-			Main.obj_bullet = new Model(System.getProperty("user.dir") + "/res/obj/bullet.obj");
-			Main.obj_grenade = new Model(System.getProperty("user.dir") + "/res/obj/grenade.obj");
-			Main.obj_item2 = new Model(System.getProperty("user.dir") + "/res/obj/item2.obj");
-			Main.obj_fence = new Model(System.getProperty("user.dir") + "/res/obj/fence.obj");
-			Main.obj_fencelong = new Model(System.getProperty("user.dir") + "/res/obj/fencelong.obj");
-			Main.obj_map = new Model(System.getProperty("user.dir") + "/res/map/map.obj");
-			physmap = loadPhysModel(System.getProperty("user.dir") + "/res/map/map.pma", false);
-			pphysmap = loadPhysModel(System.getProperty("user.dir") + "/res/map/map.pma", true);
-			
-			Main.wavs_gunfire = new int[3];
-			Main.wavs_gunfire[0] = ResourceLoader.getSourceFromWav(System.getProperty("user.dir") + "/res/wav/gun0_fire.wav", 0.15f);
-			Main.wavs_gunfire[1] = ResourceLoader.getSourceFromWav(System.getProperty("user.dir") + "/res/wav/gun1_fire.wav", 0.1f);
-			Main.wavs_gunfire[2] = ResourceLoader.getSourceFromWav(System.getProperty("user.dir") + "/res/wav/gun2_fire.wav", 0.15f);
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			Main.printError("Failed to load resources");
-			Main.exit(1);
-		}
-		
-		Main.dl_zombiebody = glGenLists(1); // Init DisplayLists
-		glNewList(Main.dl_zombiebody, GL_COMPILE); Render.zombiebody(); glEndList();
-		Main.dl_zombiehead = glGenLists(1);
-		glNewList(Main.dl_zombiehead, GL_COMPILE); Render.zombiehead(); glEndList();
-		Main.dl_bullet = glGenLists(1);
-		glNewList(Main.dl_bullet, GL_COMPILE); Main.obj_bullet.render(); glEndList();
-		Main.dl_floorandmap = glGenLists(1);
-		glNewList(Main.dl_floorandmap, GL_COMPILE); Render.floor(); Main.obj_map.render(); glEndList();
-		Main.dl_grenade = glGenLists(1);
-		glNewList(Main.dl_grenade, GL_COMPILE); Main.obj_grenade.render(); glEndList();
-		Main.dl_cexplosive = glGenLists(1);
-		glNewList(Main.dl_cexplosive, GL_COMPILE); Main.obj_item2.render(); glEndList();
-		Main.dl_gun = new int[3];
-		Main.dl_gun[0] = glGenLists(1);
-		glNewList(Main.dl_gun[0], GL_COMPILE); Main.obj_gun[0].render(); glEndList();
-		Main.dl_gun[1] = glGenLists(1);
-		glNewList(Main.dl_gun[1], GL_COMPILE); Main.obj_gun[1].render(); glEndList();
-		Main.dl_gun[2] = glGenLists(1);
-		glNewList(Main.dl_gun[2], GL_COMPILE); Main.obj_gun[2].render(); glEndList();
-		
-		System.gc();
-		
-		while (!Display.isCloseRequested()) {// Main Loop
-			if (gameOver && Keyboard.isKeyDown(KEY_N)) {
-				if (Display.isCreated()) Display.destroy();
-				if (AL.isCreated()) AL.destroy();
-				Main.launcher.setVisible(true);
-				return;
-			}
-			forTicker();
-			fps.tick();
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glClearColor(0.4f, 0.2f, 0, 0);
-			glLoadIdentity();
-				cam.init3d();
-				glEnable(GL_LIGHTING);
-				renderRelative3d();
-				cam.tick();
-				render3d();
-				glDisable(GL_LIGHTING);
-				render3dNoLighting();
-			glLoadIdentity();
-				cam.init2d();
-				glBindTexture(GL_TEXTURE_2D, 0);
-				render2d();
-			Display.update();
-		}
-		Main.exit();
-	}
-	
-	private void forTicker() {
-		Main.mouseX = Mouse.getX() * 1600 / Display.getWidth();
-		Main.mouseY = Mouse.getY() * 900 / Display.getHeight();
-		pausedetect();
-		if (!gamePaused && !gameOver) {
-			input();
-			tick();
-		}
-		if (gamePaused && !gameOver) {
-			listenmenu();
-		}
-	}
-	
-	private void pausedetect() {
-		if (Keyboard.isKeyDown(KEY_LCONTROL) || Keyboard.isKeyDown(KEY_E)) {
-			if (!lctrlDown) {
-				gamePaused = !gamePaused;
-				Mouse.setGrabbed(!Mouse.isGrabbed());
-			}
-			lctrlDown = true;
-		} else {
-			lctrlDown = false;
-		}
-		if (Mouse.isButtonDown(0) && Main.mouseX >= 400 && Main.mouseX <= 450 && Main.mouseY >= 728 && Main.mouseY <= 740) Main.exit(0);
-	}
-	private void input() {
-		if (Main.enabledebugmode && Keyboard.isKeyDown(KEY_LMENU)) {
-			if (Keyboard.isKeyDown(KEY_C)) coins *= 2;
-			if (Keyboard.isKeyDown(KEY_H)) hp += 1;
-			if (Keyboard.isKeyDown(KEY_N)) hp -= 1;
-		}
-		if (Keyboard.isKeyDown(KEY_W)) {
-			if (Keyboard.isKeyDown(KEY_LSHIFT) && runtimeleft >= 1 && !Mouse.isButtonDown(1)) {
-				runtimeleft--;
-				cam.move(1, 0.1f * runfactor, pphysmap);
-				if (cam.getFov() < 80) {
-					cam.setFov(cam.getFov() + 1);
-				}
-			} else {
-				cam.move(1, 0.1f, pphysmap);
-				if (cam.getFov() > 70) {
-					cam.setFov(cam.getFov() - 1);
-				}
-			}
-		}
-		if (Keyboard.isKeyDown(KEY_S)) {
-			cam.move(1, -0.1f, pphysmap);
-		}
-		if (Keyboard.isKeyDown(KEY_A)) {
-			cam.move(0, 0.1f, pphysmap);
-		}
-		if (Keyboard.isKeyDown(KEY_D)) {
-			cam.move(0, -0.1f, pphysmap);
-		}
-		if (Keyboard.isKeyDown(KEY_ADD)) {
-			if (canmodifyrunfactor && !runfasterdown && runfactor + 0.5f <= 5) {
-				runfactor += 0.5f;
-			}
-			runfasterdown = true;
-		} else {
-			runfasterdown = false;
-		}
-		if (Keyboard.isKeyDown(KEY_SUBTRACT)) {
-			if (canmodifyrunfactor && !runslowerdown && runfactor - 0.5f >= 0) {
-				runfactor -= 0.5f;
-			}
-			runslowerdown = true;
-		} else {
-			runslowerdown = false;
-		}
-		
-		if (Keyboard.isKeyDown(KEY_G)) {
-			if (shootCooldown <= 0 && grenadeamt > 0) {
-				throwGrenade();
-				grenadeamt--;
-				shootCooldown = 90;
-			}
-		}
-		
-		if (Keyboard.isKeyDown(KEY_SPACE)) {
-			if (runtimeleft > 5 && fallspeed > -0.25f && jetpack && cam.getTy() < 32) {
-				fallspeed -= 0.05f;
-				runtimeleft -= 5;
-			} else if (cam.getTy() <= 0 || cam.colliding(pphysmap, cam.getTx(), cam.getTy() - 0.05f, cam.getTz())) {
-				fallspeed = -0.2f;
-			}
-		}
-		
-		if (Keyboard.isKeyDown(KEY_F)) {
-			if (!fDown) {
-				if (items[selecteditem] > 0) {
-					float vxz = (float) Math.cos(Math.toRadians(cam.getRx()));
-					float vy = (float) (0.01 * Math.sin(Math.toRadians(cam.getRx())));
-					float vx = (float) (0.01 * Math.sin(Math.toRadians(cam.getRy() - 180)) * vxz);
-					float vz = (float) (0.01 * Math.cos(Math.toRadians(cam.getRy() - 180)) * vxz);
-					float x = cam.getTx();
-					float y = cam.getTy() + 2;
-					float z = cam.getTz();
-					int attempt = 0;
-					while (attempt < 1000) {
-						attempt++;
-						x += vx;
-						y += vy;
-						z += vz;
-						if (cam.colliding(physmap, x, y, z)) {
-							if (cam.colliding(physmap, x - vx, y, z - vz) && x >= 0 && x < 128 && z >= 0 && z < 128) {
-								blocks.add(Block.getByType(x, y, z, selecteditem));
-								items[selecteditem]--;
-							}
-							break;
-						}
-					}
-				}
-			}
-			fDown = true;
-		} else {
-			fDown = false;
-		}
-		
-		if (cam.setTy(cam.getTy() - fallspeed, pphysmap)) fallspeed = 0;
-		fallspeed += 0.01f;
-		if (cam.getTy() > 32) {
-			cam.setTy(32);
-		}
-		if (cam.getTy() < 0) {
-			if (fallspeed > 0.1f) {
-				fallspeed = 0.1f;
-			}
-			cam.setTy(0);
-		}
-		
-		if (Mouse.isGrabbed()) {
-			int dx = Mouse.getDX();
-			int dy = Mouse.getDY();
-			if (dx != 0){
-				cam.rotateY(-(float)dx / 15);
-			}
-			if (dy != 0){
-				cam.rotateX(-(float)dy / 15);
-			}
-		}
-		
-		if (Mouse.isButtonDown(1)) {
-			accuracy = accuracylvl / 8f;
-			aiming = true;
-		} else {
-			accuracy = accuracylvl;
-			aiming = false;
-		}
-		if (aiming && aimstatus < 10) aimstatus++;
-		if (!aiming && aimstatus > 0) aimstatus--;
-		if (cam.getFov() <= 70) cam.setFov(70 - aimstatus * 3);
-		
-		if (Mouse.isButtonDown(0)) {
-			if (shootCooldown <= 0) {
-				shoot();
-				if (shootSpeed > 25) alSourcePlay(Main.wavs_gunfire[2]);
-				else if (shootSpeed > 5) alSourcePlay(Main.wavs_gunfire[1]);
-				else alSourcePlay(Main.wavs_gunfire[0]);
-				if (recoil < recoillvl) recoil += recoillvl / 25f;
-				shootCooldown = 60 / shootSpeed;
-			}
-		} else {
-			recoil = 0;
-		}
-		if (Keyboard.isKeyDown(KEY_0)) {
-			selecteditem = 0;
-		} else if (Keyboard.isKeyDown(KEY_1)) {
-			selecteditem = 1;
-		} else if (Keyboard.isKeyDown(KEY_2)) {
-			selecteditem = 2;
-		} else if (Keyboard.isKeyDown(KEY_3)) {
-			selecteditem = 3;
-		}
-		
-	}
-	private void tick() {
-		if (hpblinking > 0) hpblinking--;
-		else if (hp < maxHp / 5) hpblinking = 30;
-		if (runtimeleft + runtimereg <= runtimecap) {
-			runtimeleft += runtimereg;
-		}
-		if (shootCooldown > 0) {
-			shootCooldown--;
-		}
-		if (spawnCooldown > 0) {
-			spawnCooldown--;
-		}
-		if (spawnCooldown <= 0) {
-			for (int i = 0; i < (int) Math.floor(spawnSpeed); i++) {
-				spawnZombie();
-			}
-			spawnSpeed += spawnSpeedAdd;
-			spawnCooldown = 60;
-			System.gc();
-		}
-		for (int j = 0; j < 4; j++) {
-			for (int i = 0; i < grenades.size(); i++) {
-				if (!grenades.get(i).tick(physmap)) {
-					grenades.remove(i);
-				}
-			}
-			for (int i = 0; i < bullets.size(); i++) {
-				if (!bullets.get(i).tick(cam.getTx(), cam.getTy(), cam.getTz(), physmap)) {
-					bullets.remove(i);
-				}
-			}
-			for (int i = 0; i < zombies.size(); i++) {
-				if (!zombies.get(i).tick(bullets, cam.getTx(), cam.getTy(), cam.getTz(), pphysmap)) {
-					zombies.remove(i);
-				}
-			}
-		}
-		if (hp <= 0) {
-			hp = 0;
-			gameOver = true;
-		}
-		if (backgred - 0.02f >= 0) {
-			backgred -= 0.02f;
-		} else {
-			backgred = 0;
-		}
-		for (int i = 0; i < blocks.size(); i++) {
-			if (!blocks.get(i).tick()) {
-				blocks.remove(i);
-			}
-		}
-	}
-	private void renderRelative3d() {
+
+
+	@Override
+	protected void render3dRelative() {
 		glRotatef(recoil / 4f, 1, 0, 0);
 		Render.gun(shootSpeed, aimstatus);
-		
+	}
+
+	@Override
+	protected void render3dRelativeNoLighting() {
 		if (!aiming || shootSpeed > 5) {
-			glDisable(GL_LIGHTING);
 			glColor3f(backgred, 1 - backgred, 0);
 			
 			glLoadIdentity();
@@ -415,9 +88,9 @@ public class Game extends Thread {
 			glTranslated(0, -0.0015, -0.1);
 			glBegin(GL_QUADS);
 			glVertex3d(0, -0.0001, 0);
-			glVertex3d(-0.003, -0.0001, 0);
-			glVertex3d(-0.003, 0.0001, 0);
 			glVertex3d(0, 0.0001, 0);
+			glVertex3d(-0.003, 0.0001, 0);
+			glVertex3d(-0.003, -0.0001, 0);
 			glEnd();
 			
 			glLoadIdentity();
@@ -435,17 +108,18 @@ public class Game extends Thread {
 			glTranslated(0, -0.0015, -0.1);
 			glBegin(GL_QUADS);
 			glVertex3d(-0.0001, 0, 0);
-			glVertex3d(-0.0001, 0.003, 0);
-			glVertex3d(0.0001, 0.003, 0);
 			glVertex3d(0.0001, 0, 0);
+			glVertex3d(0.0001, 0.003, 0);
+			glVertex3d(-0.0001, 0.003, 0);
 			glEnd();
-			glEnable(GL_LIGHTING);
 		}
 		
 		glLoadIdentity();
 		glRotatef(recoil / 4f, -1, 0, 0);
 	}
-	private void render3d() {
+
+	@Override
+	protected void render3d() {
 		glCallList(Main.dl_floorandmap);
 		for (Bullet e : bullets) {
 			glPushMatrix();
@@ -463,7 +137,10 @@ public class Game extends Thread {
 			block.render();
 		}
 	}
-	private void render3dNoLighting() {
+
+	@Override
+	protected void render3dNoLighting() {
+		glDisable(GL_CULL_FACE);
 		glBindTexture(GL_TEXTURE_2D, Main.tex_zombey);
 		for (Zombie zombie : zombies) {
 			glPushMatrix();
@@ -476,9 +153,12 @@ public class Game extends Thread {
 				glEnd();
 			glPopMatrix();
 		}
+		glEnable(GL_CULL_FACE);
 		Render.skybox();
 	}
-	private void render2d() {
+	
+	@Override
+	protected void render2d() {
 		Render.minimap(cam.getTx(), cam.getTz(), zombies);// Minimap, left-bottom
 		glColor3f(0, 1, 0);// Hp and Stamina bars, right-bottom
 		glBegin(GL_LINE_LOOP);
@@ -513,12 +193,11 @@ public class Game extends Thread {
 		SimpleText.drawString("STAMINA", 1290, 102);
 		SimpleText.drawString("ITEM SELECTED: " + itemnames[selecteditem] + " - " + items[selecteditem] + " left", 1250, 142);
 		SimpleText.drawString("GRENADES: " + grenadeamt, 1250,  162);
-		SimpleText.drawString("HP    " + hp, 1, 890);
-		SimpleText.drawString("Score " + score, 1, 880);
-		SimpleText.drawString("Coins " + coins, 1, 870);
-		SimpleText.drawString("Level " + String.valueOf((int) Math.floor(spawnSpeed)), 1, 860);
-		SimpleText.drawString("FPS  " + String.valueOf(fps.getFPS()), 1500, 890);
+		SimpleText.drawString("HP    " + hp, 1, 860);
+		SimpleText.drawString("Score " + score, 1, 850);
+		SimpleText.drawString("Coins " + coins, 1, 840);
 		Runtime runtime = Runtime.getRuntime();
+		SimpleText.drawString("Level " + String.valueOf((int) Math.floor(spawnSpeed)), 1500, 890);
 		SimpleText.drawString("RAM  " + String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / 1048576), 1500, 880);
 		SimpleText.drawString("posX " + String.valueOf(Math.round(cam.getTx())), 1500, 870);
 		SimpleText.drawString("posY " + String.valueOf(Math.round(cam.getTy())), 1500, 860);
@@ -533,6 +212,331 @@ public class Game extends Thread {
 		}
 		if (gamePaused) {
 			rendermenu();
+		}
+	}
+
+	@Override
+	protected void tick() {
+		Main.mouseX = Mouse.getX() * 1600 / Display.getWidth();
+		Main.mouseY = Mouse.getY() * 900 / Display.getHeight();
+		if (gamePaused && !gameOver) {
+			listenmenu();
+		}
+		
+		if (Keyboard.isKeyDown(KEY_LCONTROL) || Keyboard.isKeyDown(KEY_E)) {// Pause
+		if (!lctrlDown) {
+			gamePaused = !gamePaused;
+			Mouse.setGrabbed(!Mouse.isGrabbed());
+		}
+			lctrlDown = true;
+		} else {
+			lctrlDown = false;
+		}
+		if (Mouse.isButtonDown(0) && Main.mouseX >= 400 && Main.mouseX <= 450 && Main.mouseY >= 728 && Main.mouseY <= 740) Main.exit(0);
+		
+		if (gameOver && Keyboard.isKeyDown(KEY_N)) {// New game
+			if (Display.isCreated()) Display.destroy();
+			if (AL.isCreated()) AL.destroy();
+			Main.launcher.setVisible(true);
+			exitmainloop = true;
+		}
+		
+		if (!gamePaused && !gameOver) {// Tick
+			if (hpblinking > 0) hpblinking--;
+			else if (hp < maxHp / 5) hpblinking = 30;
+			if (runtimeleft + runtimereg <= runtimecap) {
+				runtimeleft += runtimereg;
+			}
+			if (shootCooldown > 0) {
+				shootCooldown--;
+			}
+			if (spawnCooldown > 0) {
+				spawnCooldown--;
+			}
+			if (spawnCooldown <= 0) {
+				for (int i = 0; i < (int) Math.floor(spawnSpeed); i++) {
+					spawnZombie();
+				}
+				spawnSpeed += spawnSpeedAdd;
+				spawnCooldown = 60;
+				System.gc();
+			}
+			for (int j = 0; j < 4; j++) {
+				for (int i = 0; i < grenades.size(); i++) {
+					if (!grenades.get(i).tick(physmap)) {
+						grenades.remove(i);
+					}
+				}
+				for (int i = 0; i < bullets.size(); i++) {
+					if (!bullets.get(i).tick(cam.getTx(), cam.getTy(), cam.getTz(), physmap)) {
+						bullets.remove(i);
+					}
+				}
+				for (int i = 0; i < zombies.size(); i++) {
+					if (!zombies.get(i).tick(bullets, cam.getTx(), cam.getTy(), cam.getTz(), pphysmap)) {
+						zombies.remove(i);
+					}
+				}
+			}
+			if (hp <= 0) {
+				hp = 0;
+				Mouse.setGrabbed(false);
+				gameOver = true;
+			}
+			if (backgred - 0.02f >= 0) {
+				backgred -= 0.02f;
+			} else {
+				backgred = 0;
+			}
+			for (int i = 0; i < blocks.size(); i++) {
+				if (!blocks.get(i).tick()) {
+					blocks.remove(i);
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void preInit() {
+		physmap = new PhysMap();
+		pphysmap = new PhysMap();
+	}
+
+	@Override
+	protected void postInit() {
+		try {// Init OpenAL
+			AL.create();
+		} catch (LWJGLException e) {
+			e.printStackTrace();
+		}
+		try {// Load resources
+			if (enable_shader) {
+				sh_main = new int[3];
+				sh_main[0] = ResourceLoader.loadShader("res/shader/3d.vsh", "res/shader/3d.fsh")[0];
+				sh_main[1] = ResourceLoader.loadShader("res/shader/2d.vsh", "res/shader/2d.fsh")[0];
+				sh_main[2] = sh_main[1];
+			}
+			
+			Main.tex_zombey = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/z0mb3y.png");
+			Main.tex_floor = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/floor.png");
+			Main.tex_skybox = new int[5];
+			Main.tex_skybox[0] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_top.png");
+			Main.tex_skybox[1] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_front.png");
+			Main.tex_skybox[2] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_left.png");
+			Main.tex_skybox[3] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_back.png");
+			Main.tex_skybox[4] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_right.png");
+			
+			
+			Main.obj_gun = new Model[3];
+			Main.obj_gun[0] = new Model(System.getProperty("user.dir") + "/res/obj/gun0.obj");
+			Main.obj_gun[1] = new Model(System.getProperty("user.dir") + "/res/obj/gun1.obj");
+			Main.obj_gun[2] = new Model(System.getProperty("user.dir") + "/res/obj/gun2.obj");
+			Main.obj_bullet = new Model(System.getProperty("user.dir") + "/res/obj/bullet.obj");
+			Main.obj_grenade = new Model(System.getProperty("user.dir") + "/res/obj/grenade.obj");
+			Main.obj_item2 = new Model(System.getProperty("user.dir") + "/res/obj/item2.obj");
+			Main.obj_fence = new Model(System.getProperty("user.dir") + "/res/obj/fence.obj");
+			Main.obj_fencelong = new Model(System.getProperty("user.dir") + "/res/obj/fencelong.obj");
+			Main.obj_map = new Model(System.getProperty("user.dir") + "/res/map/map.obj");
+			physmap.load(System.getProperty("user.dir") + "/res/map/map.pma", 0, 0);
+			pphysmap.load(System.getProperty("user.dir") + "/res/map/map.pma", 2, 0.1f);
+			
+			Main.wavs_gunfire = new int[3];
+			Main.wavs_gunfire[0] = ResourceLoader.getSourceFromWav(System.getProperty("user.dir") + "/res/wav/gun0_fire.wav", 0.15f);
+			Main.wavs_gunfire[1] = ResourceLoader.getSourceFromWav(System.getProperty("user.dir") + "/res/wav/gun1_fire.wav", 0.1f);
+			Main.wavs_gunfire[2] = ResourceLoader.getSourceFromWav(System.getProperty("user.dir") + "/res/wav/gun2_fire.wav", 0.15f);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			Main.printError("Failed to load resources");
+			Main.exit(1);
+		}
+		
+		Main.dl_zombiebody = glGenLists(1); // Init DisplayLists
+		glNewList(Main.dl_zombiebody, GL_COMPILE); Render.zombiebody(); glEndList();
+		Main.dl_zombiehead = glGenLists(1);
+		glNewList(Main.dl_zombiehead, GL_COMPILE); Render.zombiehead(); glEndList();
+		Main.dl_bullet = glGenLists(1);
+		glNewList(Main.dl_bullet, GL_COMPILE); Main.obj_bullet.render(); glEndList();
+		Main.dl_floorandmap = glGenLists(1);
+		glNewList(Main.dl_floorandmap, GL_COMPILE); Render.floor(); Main.obj_map.render(); glEndList();
+		Main.dl_grenade = glGenLists(1);
+		glNewList(Main.dl_grenade, GL_COMPILE); Main.obj_grenade.render(); glEndList();
+		Main.dl_cexplosive = glGenLists(1);
+		glNewList(Main.dl_cexplosive, GL_COMPILE); Main.obj_item2.render(); glEndList();
+		Main.dl_gun = new int[3];
+		Main.dl_gun[0] = glGenLists(1);
+		glNewList(Main.dl_gun[0], GL_COMPILE); Main.obj_gun[0].render(); glEndList();
+		Main.dl_gun[1] = glGenLists(1);
+		glNewList(Main.dl_gun[1], GL_COMPILE); Main.obj_gun[1].render(); glEndList();
+		Main.dl_gun[2] = glGenLists(1);
+		glNewList(Main.dl_gun[2], GL_COMPILE); Main.obj_gun[2].render(); glEndList();
+		
+		glClearColor(0.4f, 0.2f, 0, 0);// Set states
+	}
+
+	@Override
+	protected CameraMode initCameraMode() {
+		Camera.CameraMode m = new Camera.CameraMode();
+		m.setDisplayRes(initresX, initresY);
+		m.setLightpos(-1, 0.5f, -0.5f, 0);
+		m.setMap(pphysmap);
+		m.setOptions(initfullscreen, 2);
+		m.setOrthoRes(1600, 900);
+		m.setPerspective(70, 0.001f, 2000);
+		m.setTitle("ZombieApocalypse 3D");
+		m.setTransformation(64, 0, 64, 0, 0, 0);
+		return m;
+	}
+	
+	@Override
+	protected void onExit() {
+		Main.onExit();
+	}
+	
+	@Override
+	protected void move() {
+		if (!gamePaused && !gameOver) {
+			if (Main.enabledebugmode && Keyboard.isKeyDown(KEY_LMENU)) {
+				if (Keyboard.isKeyDown(KEY_C)) coins *= 2;
+				if (Keyboard.isKeyDown(KEY_H)) hp += 1;
+				if (Keyboard.isKeyDown(KEY_N)) hp -= 1;
+			}
+			if (Keyboard.isKeyDown(KEY_W)) {
+				if (Keyboard.isKeyDown(KEY_LSHIFT) && runtimeleft >= 1 && !Mouse.isButtonDown(1)) {
+					runtimeleft--;
+					cam.moveNoY(1, 0.1f * runfactor);
+					if (cam.getFov() < 80) {
+						cam.setFov(cam.getFov() + 1);
+					}
+				} else {
+					cam.moveNoY(1, 0.1f);
+					if (cam.getFov() > 70) {
+						cam.setFov(cam.getFov() - 1);
+					}
+				}
+			}
+			if (Keyboard.isKeyDown(KEY_S)) {
+				cam.moveNoY(1, -0.1f);
+			}
+			if (Keyboard.isKeyDown(KEY_A)) {
+				cam.moveNoY(0, 0.1f);
+			}
+			if (Keyboard.isKeyDown(KEY_D)) {
+				cam.moveNoY(0, -0.1f);
+			}
+			if (Keyboard.isKeyDown(KEY_ADD)) {
+				if (canmodifyrunfactor && !runfasterdown && runfactor + 0.5f <= 5) {
+					runfactor += 0.5f;
+				}
+				runfasterdown = true;
+			} else {
+				runfasterdown = false;
+			}
+			if (Keyboard.isKeyDown(KEY_SUBTRACT)) {
+				if (canmodifyrunfactor && !runslowerdown && runfactor - 0.5f >= 0) {
+					runfactor -= 0.5f;
+				}
+				runslowerdown = true;
+			} else {
+				runslowerdown = false;
+			}
+			
+			if (Keyboard.isKeyDown(KEY_G)) {
+				if (shootCooldown <= 0 && grenadeamt > 0) {
+					throwGrenade();
+					grenadeamt--;
+					shootCooldown = 90;
+				}
+			}
+			
+			if (Keyboard.isKeyDown(KEY_SPACE)) {
+				if (runtimeleft > 5 && fallspeed > -0.25f && jetpack && cam.getTy() < 32) {
+					fallspeed -= 0.05f;
+					runtimeleft -= 5;
+				} else if (cam.getTy() <= 0 || pphysmap.collides(cam.getTx(), cam.getTy() - 0.05f, cam.getTz())) {
+					fallspeed = -0.2f;
+				}
+			}
+			
+			if (Keyboard.isKeyDown(KEY_F)) {
+				if (!fDown) {
+					if (items[selecteditem] > 0) {
+						float vxz = (float) Math.cos(Math.toRadians(cam.getRx()));
+						float vy = (float) (0.01 * Math.sin(Math.toRadians(cam.getRx())));
+						float vx = (float) (0.01 * Math.sin(Math.toRadians(cam.getRy() - 180)) * vxz);
+						float vz = (float) (0.01 * Math.cos(Math.toRadians(cam.getRy() - 180)) * vxz);
+						float x = cam.getTx();
+						float y = cam.getTy() + 2;
+						float z = cam.getTz();
+						int attempt = 0;
+						while (attempt < 1000) {
+							attempt++;
+							x += vx;
+							y += vy;
+							z += vz;
+							if (physmap.collides(x, y, z)) {
+								if (physmap.collides(x - vx, y, z - vz) && x >= 0 && x < 128 && z >= 0 && z < 128) {
+									blocks.add(Block.getByType(x, y, z, selecteditem));
+									items[selecteditem]--;
+								}
+								break;
+							}
+						}
+					}
+				}
+				fDown = true;
+			} else {
+				fDown = false;
+			}
+			
+			if (cam.setTy(cam.getTy() - fallspeed, true)) fallspeed = 0;
+			fallspeed += 0.01f;
+			if (cam.getTy() > 32) {
+				cam.setTy(32, false);
+			}
+			if (cam.getTy() < 0) {
+				if (fallspeed > 0.1f) {
+					fallspeed = 0.1f;
+				}
+				cam.setTy(0, false);
+			}
+			
+			if (Mouse.isButtonDown(1)) {
+				accuracy = accuracylvl / 8f;
+				aiming = true;
+			} else {
+				accuracy = accuracylvl;
+				aiming = false;
+			}
+			if (aiming && aimstatus < 10) aimstatus++;
+			if (!aiming && aimstatus > 0) aimstatus--;
+			if (cam.getFov() <= 70) cam.setFov(70 - aimstatus * 3);
+			
+			if (Mouse.isButtonDown(0)) {
+				if (shootCooldown <= 0) {
+					shoot();
+					if (shootSpeed > 25) alSourcePlay(Main.wavs_gunfire[2]);
+					else if (shootSpeed > 5) alSourcePlay(Main.wavs_gunfire[1]);
+					else alSourcePlay(Main.wavs_gunfire[0]);
+					if (recoil < recoillvl) recoil += recoillvl / 25f;
+					shootCooldown = 60 / shootSpeed;
+				}
+			} else {
+				recoil = 0;
+			}
+			if (Keyboard.isKeyDown(KEY_0)) {
+				selecteditem = 0;
+			} else if (Keyboard.isKeyDown(KEY_1)) {
+				selecteditem = 1;
+			} else if (Keyboard.isKeyDown(KEY_2)) {
+				selecteditem = 2;
+			} else if (Keyboard.isKeyDown(KEY_3)) {
+				selecteditem = 3;
+			}
+			if (cam.getTx() < 0) cam.setTx(0);
+			if (cam.getTx() > 128) cam.setTx(128);
+			if (cam.getTz() < 0) cam.setTz(0);
+			if (cam.getTz() > 128) cam.setTz(128);
 		}
 	}
 	
@@ -842,7 +846,7 @@ public class Game extends Thread {
 			glVertex2i(1530, 602);
 			glVertex2i(1530, 630);
 		glEnd();
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
 		
 		glColor3f(0, 0, 1);// Text
 		SimpleText.drawString("SHOP", 184, 828);
@@ -1043,69 +1047,5 @@ public class Game extends Thread {
 	}
 	public ArrayList<Bullet> getBullets() {
 		return bullets;
-	}
-	
-	public float[][] loadPhysModel(String path, boolean forPlayer) throws IOException {
-		BufferedReader res = new BufferedReader(new FileReader(path));
-		ArrayList<float[]> vertices = new ArrayList<float[]>();
-		ArrayList<float[]> objects = new ArrayList<float[]>();
-		
-		String line;
-		while ((line = res.readLine()) != null) {
-			if (!line.isEmpty() && !line.startsWith("#")) {
-				
-				String[] args = line.split(" ");
-				
-				if (args[0].equals("v") && args.length == 4) {
-					float[] entry = {Float.valueOf(args[1]), Float.valueOf(args[2]), Float.valueOf(args[3])};
-					vertices.add(entry);
-				}
-				if (args[0].equals("o") && args.length == 3) {
-					float x1 = vertices.get(Integer.valueOf(args[1]) - 1)[0];
-					float x2 = vertices.get(Integer.valueOf(args[2]) - 1)[0];
-					float y1 = vertices.get(Integer.valueOf(args[1]) - 1)[1];
-					float y2 = vertices.get(Integer.valueOf(args[2]) - 1)[1];
-					float z1 = vertices.get(Integer.valueOf(args[1]) - 1)[2];
-					float z2 = vertices.get(Integer.valueOf(args[2]) - 1)[2];
-					
-					float xmin, xmax, ymin, ymax, zmin, zmax;
-					
-					if (x1 > x2) {
-						xmin = x2;
-						xmax = x1;
-					} else {
-						xmin = x1;
-						xmax = x2;
-					}
-					if (y1 > y2) {
-						ymin = y2;
-						ymax = y1;
-					} else {
-						ymin = y1;
-						ymax = y2;
-					}
-					if (z1 > z2) {
-						zmin = z2;
-						zmax = z1;
-					} else {
-						zmin = z1;
-						zmax = z2;
-					}
-					
-					if (forPlayer) ymin -= 2; // Player height
-					
-					float[] entry = {xmin, xmax, ymin, ymax, zmin, zmax};
-					objects.add(entry);
-				}
-			}
-		}
-		res.close();
-		
-		float[][] output = new float[objects.size()][6];
-		for (int i = 0; i < objects.size(); i++) {
-			output[i] = objects.get(i);
-		}
-		
-		return output;
 	}
 }

@@ -1,6 +1,8 @@
 package org.jufi.za3d;
 
-import java.util.List;
+import java.util.ArrayList;
+
+import org.jufi.lwjglutil.*;
 
 public class Zombie {
 	private float px, py, pz, red, green, blue, speed;
@@ -97,7 +99,7 @@ public class Zombie {
 		}
 	}
 	
-	public boolean tick(List<Bullet> bullets, float playerX, float playerY, float playerZ, float[][] physmap) {
+	public boolean tick(ArrayList<Bullet> bullets, float playerX, float playerY, float playerZ, PhysMap physmap) {
 		for (int i = 0; i < bullets.size(); i++) {
 			if (bullets.get(i).getPx() > px - 0.4f && bullets.get(i).getPx() < px + 0.4f && bullets.get(i).getPy() > py && bullets.get(i).getPy() < py + 2 && bullets.get(i).getPz() > pz - 0.4f && bullets.get(i).getPz() < pz + 0.4f && !bullets.get(i).isShotbyzombie()) {
 				bullets.get(i).decreaseHealth(1);
@@ -130,12 +132,9 @@ public class Zombie {
 			float opx = px, opz = pz;
 			px += speed / c * (a);
 			pz += speed / c * (b);
-			for (float[] physobj : physmap) {
-				if (collidesWith(physobj) && !collidesWith(physobj, opx, py, opz)) {
-					px = opx;
-					pz = opz;
-					break;
-				}
+			if (physmap.collides(px, py, pz) && !physmap.collides(opx, py, opz)) {
+				px = opx;
+				pz = opz;
 			}
 		}
 		if (doNotMove > 0) {

@@ -1,5 +1,7 @@
 package org.jufi.za3d;
 
+import org.jufi.lwjglutil.*;
+
 public class Bullet {
 	private float px, py, pz, vx, vy, vz;
 	private int health;
@@ -17,12 +19,12 @@ public class Bullet {
 		this.shotByPlayer = shotByPlayer;
 	}
 	
-	public boolean tick(float playerX, float playerY, float playerZ, float[][] physmap) {
+	public boolean tick(float playerX, float playerY, float playerZ, PhysMap physmap) {
 		vy -= 0.0001f;
 		px += vx;
 		py += vy;
 		pz += vz;
-		if (px < Render.ZA_FLOOR_START || px > Render.ZA_FLOOR_END || py < 0 || py > 128 || pz < Render.ZA_FLOOR_START || pz > Render.ZA_FLOOR_END || health <= 0 || colliding(physmap)) {
+		if (px < Render.ZA_FLOOR_START || px > Render.ZA_FLOOR_END || py < 0 || py > 128 || pz < Render.ZA_FLOOR_START || pz > Render.ZA_FLOOR_END || health <= 0 || physmap.collides(px, py, pz)) {
 			return false;
 		}
 		if (Math.floor(playerX - px) < 0.4f && Math.floor(playerZ - pz) < 0.4f && playerY < py && playerY + 2 > py && shotByZombie) {
@@ -61,18 +63,5 @@ public class Bullet {
 		float vx = (float) -Math.sin(Math.toRadians(ry)) * vxz;
 		float vz = (float) -Math.cos(Math.toRadians(ry)) * vxz;
 		return new Bullet(vx, vy, vz, px, py, pz, initialHealth, shotByPlayer);
-	}
-	
-	public boolean collidesWith(float[] points) {
-		// float[] points = {xmin, xmax, ymin, ymax, zmin, zmax};
-		if (px > points[0] && px < points[1] && py > points[2] && py < points[3] && pz > points[4] && pz < points[5]) return true;
-		else return false;
-	}
-	
-	public boolean colliding(float[][] physmap) {
-		for (float[] physobj : physmap) {
-			if (collidesWith(physobj)) return true;
-		}
-		return false;
 	}
 }

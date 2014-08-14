@@ -12,10 +12,11 @@ import javax.swing.*;
 
 public class GameLauncher extends JFrame {
 	private static final long serialVersionUID = -829986982144280127L;
-	private JPanel panel_resolution;
+	private JPanel panel_settings;
 	private JLabel label_description;
 	private JButton button_easy, button_medium, button_hard;
-	private JRadioButton res_0, res_1, res_2;
+	private JCheckBox checkbox_shader;
+	private JRadioButton radiobutton_res_0, radiobutton_res_1, radiobutton_res_2;
 	private ButtonGroup resolution;
 	
 	public GameLauncher() {
@@ -36,43 +37,45 @@ public class GameLauncher extends JFrame {
 		button_easy = new JButton("Easy");
 		button_medium = new JButton("Medium");
 		button_hard = new JButton("Hard");
+		checkbox_shader = new JCheckBox("Shader", true);
 		
-		res_0 = new JRadioButton("1280x720");
-		res_0.setMnemonic(KeyEvent.VK_1);
-		res_0.setActionCommand("1280x720");
-		res_1 = new JRadioButton("1600x900");
-		res_1.setMnemonic(KeyEvent.VK_2);
-		res_1.setActionCommand("1600x900");
-		res_2 = new JRadioButton("Fullscreen");
-		res_2.setMnemonic(KeyEvent.VK_2);
-		res_2.setActionCommand("Fullscreen");
-		res_2.setSelected(true);
+		radiobutton_res_0 = new JRadioButton("1280x720");
+		radiobutton_res_0.setMnemonic(KeyEvent.VK_1);
+		radiobutton_res_0.setActionCommand("1280x720");
+		radiobutton_res_1 = new JRadioButton("1600x900");
+		radiobutton_res_1.setMnemonic(KeyEvent.VK_2);
+		radiobutton_res_1.setActionCommand("1600x900");
+		radiobutton_res_2 = new JRadioButton("Fullscreen");
+		radiobutton_res_2.setMnemonic(KeyEvent.VK_2);
+		radiobutton_res_2.setActionCommand("Fullscreen");
+		radiobutton_res_2.setSelected(true);
 		
 		resolution = new ButtonGroup();
-		resolution.add(res_0);
-		resolution.add(res_1);
-		resolution.add(res_2);
+		resolution.add(radiobutton_res_0);
+		resolution.add(radiobutton_res_1);
+		resolution.add(radiobutton_res_2);
 		
-		panel_resolution = new JPanel(new FlowLayout());
-		panel_resolution.add(res_0);
-		panel_resolution.add(res_1);
-		panel_resolution.add(res_2);
+		panel_settings = new JPanel(new FlowLayout());
+		panel_settings.add(radiobutton_res_0);
+		panel_settings.add(radiobutton_res_1);
+		panel_settings.add(radiobutton_res_2);
+		panel_settings.add(checkbox_shader);
 		
 		setLayout(new BorderLayout(3, 3));
 		add(label_description, BorderLayout.PAGE_START);
 		add(button_easy, BorderLayout.LINE_START);
 		add(button_medium, BorderLayout.CENTER);
 		add(button_hard, BorderLayout.LINE_END);
-		add(panel_resolution, BorderLayout.PAGE_END);
+		add(panel_settings, BorderLayout.PAGE_END);
 		
 	}
 	private void initListeners() {
 		button_easy.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (res_0.isSelected()) Main.game = new Game(0.03f, 2f, 0);
-				else if (res_1.isSelected()) Main.game = new Game(0.03f, 2f, 1);
-				else Main.game = new Game(0.03f, 2f, 2);
+				if (radiobutton_res_0.isSelected()) Main.game = new Game(0.03f, 2f, 0, checkbox_shader.isSelected());
+				else if (radiobutton_res_1.isSelected()) Main.game = new Game(0.03f, 2f, 1, checkbox_shader.isSelected());
+				else Main.game = new Game(0.03f, 2f, 2, checkbox_shader.isSelected());
 				Main.game.start();
 				setVisible(false);
 			}
@@ -80,9 +83,9 @@ public class GameLauncher extends JFrame {
 		button_medium.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (res_0.isSelected()) Main.game = new Game(0.07f, 1.5f, 0);
-				else if (res_1.isSelected()) Main.game = new Game(0.07f, 1.5f, 1);
-				else Main.game = new Game(0.07f, 1.5f, 2);
+				if (radiobutton_res_0.isSelected()) Main.game = new Game(0.07f, 1.5f, 0, checkbox_shader.isSelected());
+				else if (radiobutton_res_1.isSelected()) Main.game = new Game(0.07f, 1.5f, 1, checkbox_shader.isSelected());
+				else Main.game = new Game(0.07f, 1.5f, 2, checkbox_shader.isSelected());
 				Main.game.start();
 				setVisible(false);
 			}
@@ -90,9 +93,9 @@ public class GameLauncher extends JFrame {
 		button_hard.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (res_0.isSelected()) Main.game = new Game(0.12f, 1f, 0);
-				else if (res_1.isSelected()) Main.game = new Game(0.12f, 1f, 1);
-				else Main.game = new Game(0.12f, 1f, 2);
+				if (radiobutton_res_0.isSelected()) Main.game = new Game(0.12f, 1f, 0, checkbox_shader.isSelected());
+				else if (radiobutton_res_1.isSelected()) Main.game = new Game(0.12f, 1f, 1, checkbox_shader.isSelected());
+				else Main.game = new Game(0.12f, 1f, 2, checkbox_shader.isSelected());
 				Main.game.start();
 				setVisible(false);
 			}

@@ -29,17 +29,17 @@ public class Render {
 				for (int b = ZA_FLOOR_START; b < ZA_FLOOR_END; b += ZA_FLOOR_RES) {
 					glTexCoord2f(0, 0);
 					glVertex3f(a, 0, b);
-					glTexCoord2f(1, 0);
-					glVertex3f(a + ZA_FLOOR_RES, 0, b);
-					glTexCoord2f(1, 1);
-					glVertex3f(a + ZA_FLOOR_RES, 0, b + ZA_FLOOR_RES);
 					glTexCoord2f(0, 1);
 					glVertex3f(a, 0, b + ZA_FLOOR_RES);
+					glTexCoord2f(1, 1);
+					glVertex3f(a + ZA_FLOOR_RES, 0, b + ZA_FLOOR_RES);
+					glTexCoord2f(1, 0);
+					glVertex3f(a + ZA_FLOOR_RES, 0, b);
 				}
 			}
 		glEnd();
 		
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
 		color = BufferUtils.createFloatBuffer(4);
 		color.put(1).put(0.8f).put(0.6f).put(1).flip();
 		glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
@@ -151,27 +151,27 @@ public class Render {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glBegin(GL_QUADS);
 			glTexCoord2f(0, 0); glVertex3f(-1000, 1000, -1000);
-			glTexCoord2f(0, 1); glVertex3f(-1000, 1000, 1000);
-			glTexCoord2f(1, 1); glVertex3f(1000, 1000, 1000);
 			glTexCoord2f(1, 0); glVertex3f(1000, 1000, -1000);
+			glTexCoord2f(1, 1); glVertex3f(1000, 1000, 1000);
+			glTexCoord2f(0, 1); glVertex3f(-1000, 1000, 1000);
 		glEnd();
 		glBindTexture(GL_TEXTURE_2D, Main.tex_skybox[1]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glBegin(GL_QUADS);
 			glTexCoord2f(0, 1); glVertex3f(-1000, -1000, 1000);
-			glTexCoord2f(1, 1); glVertex3f(1000, -1000, 1000);
-			glTexCoord2f(1, 0); glVertex3f(1000, 1000, 1000);
 			glTexCoord2f(0, 0); glVertex3f(-1000, 1000, 1000);
+			glTexCoord2f(1, 0); glVertex3f(1000, 1000, 1000);
+			glTexCoord2f(1, 1); glVertex3f(1000, -1000, 1000);
 		glEnd();
 		glBindTexture(GL_TEXTURE_2D, Main.tex_skybox[2]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glBegin(GL_QUADS);
 			glTexCoord2f(0, 1); glVertex3f(-1000, -1000, -1000);
-			glTexCoord2f(1, 1); glVertex3f(-1000, -1000, 1000);
-			glTexCoord2f(1, 0); glVertex3f(-1000, 1000, 1000);
 			glTexCoord2f(0, 0); glVertex3f(-1000, 1000, -1000);
+			glTexCoord2f(1, 0); glVertex3f(-1000, 1000, 1000);
+			glTexCoord2f(1, 1); glVertex3f(-1000, -1000, 1000);
 		glEnd();
 		glBindTexture(GL_TEXTURE_2D, Main.tex_skybox[3]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
