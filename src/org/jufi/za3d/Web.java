@@ -8,8 +8,9 @@ import org.lwjgl.BufferUtils;
 import static org.lwjgl.opengl.GL11.*;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.Renderable;
 
-public class Web extends Block {
+public class Web extends Block implements Renderable {
 
     private int health;
 
@@ -39,13 +40,13 @@ public class Web extends Block {
         float zmin = pz - 0.5f;
         float zmax = pz + 0.5f;
     	glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
+        FloatBuffer color = BufferUtils.createFloatBuffer(4);
+        color.put(cr).put(cg).put(cb).put(1).flip();
+        GL11.glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
+        color = BufferUtils.createFloatBuffer(4);
+        color.put(0).put(0).put(0).put(1).flip();
+        GL11.glMaterial(GL_FRONT, GL_SPECULAR, color);
         GL11.glBegin(GL_QUADS);
-	        FloatBuffer color = BufferUtils.createFloatBuffer(4);
-	        color.put(cr).put(cg).put(cb).put(1).flip();
-	        GL11.glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
-	        color = BufferUtils.createFloatBuffer(4);
-	        color.put(0).put(0).put(0).put(1).flip();
-	        GL11.glMaterial(GL_FRONT, GL_SPECULAR, color);
 	        
 	        GL11.glNormal3f(-1, 0, 0);
 	        GL11.glVertex3f(xmin, ymin, zmax);

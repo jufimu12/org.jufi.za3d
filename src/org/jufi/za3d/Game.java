@@ -29,7 +29,7 @@ public class Game extends org.jufi.lwjglutil.Engine {
 	private int[] items = {0, 0, 0, 1};
 	private String[] itemnames = {"nothing", "Sentrygun", "C4", "Web"};
 	private short selecteditem = 0;
-	private long score = 0, coins = 1500000, medikitCost = 10;
+	private long score = 0, coins = 150, medikitCost = 10;
 	private boolean lctrlDown = false, gamePaused = true, gameOver = false, aiming = false, initfullscreen = false, enable_shader;
 	private boolean menulmousedown = false, canmodifyrunfactor = false, runfasterdown = false, runslowerdown = false, fDown = false, jetpack = false;
 	
@@ -327,16 +327,6 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			Main.tex_skybox[4] = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/skybox_right.png");
 			
 			
-			Main.obj_gun = new Model[3];
-			Main.obj_gun[0] = new Model(System.getProperty("user.dir") + "/res/obj/gun0.obj");
-			Main.obj_gun[1] = new Model(System.getProperty("user.dir") + "/res/obj/gun1.obj");
-			Main.obj_gun[2] = new Model(System.getProperty("user.dir") + "/res/obj/gun2.obj");
-			Main.obj_bullet = new Model(System.getProperty("user.dir") + "/res/obj/bullet.obj");
-			Main.obj_grenade = new Model(System.getProperty("user.dir") + "/res/obj/grenade.obj");
-			Main.obj_item2 = new Model(System.getProperty("user.dir") + "/res/obj/item2.obj");
-			Main.obj_fence = new Model(System.getProperty("user.dir") + "/res/obj/fence.obj");
-			Main.obj_fencelong = new Model(System.getProperty("user.dir") + "/res/obj/fencelong.obj");
-			Main.obj_map = new Model(System.getProperty("user.dir") + "/res/map/map.obj");
 			physmap.load(System.getProperty("user.dir") + "/res/map/map.pma", 0, 0);
 			pphysmap.load(System.getProperty("user.dir") + "/res/map/map.pma", 2, 0.1f);
 			
@@ -351,25 +341,11 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			Main.exit(1);
 		}
 		
-		Main.dl_zombiebody = glGenLists(1); // Init DisplayLists
-		glNewList(Main.dl_zombiebody, GL_COMPILE); Render.zombiebody(); glEndList();
-		Main.dl_zombiehead = glGenLists(1);
-		glNewList(Main.dl_zombiehead, GL_COMPILE); Render.zombiehead(); glEndList();
-		Main.dl_bullet = glGenLists(1);
-		glNewList(Main.dl_bullet, GL_COMPILE); Main.obj_bullet.render(); glEndList();
-		Main.dl_floorandmap = glGenLists(1);
-		glNewList(Main.dl_floorandmap, GL_COMPILE); Render.floor(); Main.obj_map.render(); glEndList();
-		Main.dl_grenade = glGenLists(1);
-		glNewList(Main.dl_grenade, GL_COMPILE); Main.obj_grenade.render(); glEndList();
-		Main.dl_cexplosive = glGenLists(1);
-		glNewList(Main.dl_cexplosive, GL_COMPILE); Main.obj_item2.render(); glEndList();
-		Main.dl_gun = new int[3];
-		Main.dl_gun[0] = glGenLists(1);
-		glNewList(Main.dl_gun[0], GL_COMPILE); Main.obj_gun[0].render(); glEndList();
-		Main.dl_gun[1] = glGenLists(1);
-		glNewList(Main.dl_gun[1], GL_COMPILE); Main.obj_gun[1].render(); glEndList();
-		Main.dl_gun[2] = glGenLists(1);
-		glNewList(Main.dl_gun[2], GL_COMPILE); Main.obj_gun[2].render(); glEndList();
+		try {
+			Render.initDisplayLists();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		glClearColor(0.4f, 0.2f, 0, 0);// Set states
 	}
@@ -461,10 +437,10 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			if (Keyboard.isKeyDown(KEY_F)) {
 				if (!fDown) {
 					if (items[selecteditem] > 0) {
-						float vxz = (float) Math.cos(Math.toRadians(cam.getRx()));
-						float vy = (float) (0.01 * Math.sin(Math.toRadians(cam.getRx())));
-						float vx = (float) (0.01 * Math.sin(Math.toRadians(cam.getRy() - 180)) * vxz);
-						float vz = (float) (0.01 * Math.cos(Math.toRadians(cam.getRy() - 180)) * vxz);
+						float vxz = (float) MathLookup.cos(cam.getRx());
+						float vy = (float) (0.01 * MathLookup.sin(cam.getRx()));
+						float vx = (float) (0.01 * MathLookup.sin(cam.getRy() - 180) * vxz);
+						float vz = (float) (0.01 * MathLookup.cos(cam.getRy() - 180) * vxz);
 						float x = cam.getTx();
 						float y = cam.getTy() + 2;
 						float z = cam.getTz();
@@ -548,20 +524,20 @@ public class Game extends org.jufi.lwjglutil.Engine {
 		float tz = cam.getTz();
 		if (aiming) {
 			if (shootSpeed > 25) {
-				tx += 0.16f * (float) Math.cos(Math.toRadians(-cam.getRy()));
+				tx += 0.16f * (float) MathLookup.cos(-cam.getRy());
 				ty += 1.8f;
-				tz += 0.16f * (float) Math.sin(Math.toRadians(-cam.getRy()));
+				tz += 0.16f * (float) MathLookup.sin(-cam.getRy());
 			} else if (shootSpeed > 5) {
-				tx += 0.09f * (float) Math.cos(Math.toRadians(-cam.getRy()));
+				tx += 0.09f * (float) MathLookup.cos(-cam.getRy());
 				ty += 1.9f;
-				tz += 0.09f * (float) Math.sin(Math.toRadians(-cam.getRy()));
+				tz += 0.09f * (float) MathLookup.sin(-cam.getRy());
 			} else {
 				ty += 1.96f;
 			}
 		} else {
-			tx += 0.09f * (float) Math.cos(Math.toRadians(-cam.getRy()));
+			tx += 0.09f * (float) MathLookup.cos(-cam.getRy());
 			ty += 1.915f;
-			tz += 0.09f * (float) Math.sin(Math.toRadians(-cam.getRy()));
+			tz += 0.09f * (float) MathLookup.sin(-cam.getRy());
 		}
 		switch (multiShot) {
 		case 1:

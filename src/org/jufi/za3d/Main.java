@@ -1,7 +1,5 @@
 package org.jufi.za3d;
 
-import org.jufi.lwjglutil.*;
-
 import org.lwjgl.opengl.Display;
 import org.lwjgl.openal.AL;
 
@@ -14,8 +12,6 @@ public class Main {
 	public static int[] wavs_gunfire;
 	public static int dl_zombiebody, dl_zombiehead, dl_bullet, dl_floorandmap, dl_grenade, dl_cexplosive;
 	public static int[] dl_gun;
-	public static Model obj_grenade, obj_item2, obj_bullet, obj_map, obj_fence, obj_fencelong;
-	public static Model[] obj_gun;
 	public static int mouseX, mouseY;
 	public static boolean enabledebugmode;
 	

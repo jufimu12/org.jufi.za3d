@@ -58,10 +58,10 @@ public class Bullet {
 	}
 	
 	public static Bullet getByRotation(float rx, float ry, float px, float py, float pz, int initialHealth, float speed, boolean shotByPlayer) {
-		float vxz = (float) Math.cos(Math.toRadians(rx)) * speed;
-		float vy = (float) Math.sin(Math.toRadians(rx)) * speed;
-		float vx = (float) -Math.sin(Math.toRadians(ry)) * vxz;
-		float vz = (float) -Math.cos(Math.toRadians(ry)) * vxz;
+		float vxz = (float) MathLookup.cos(rx) * speed;
+		float vy = (float) MathLookup.sin(rx) * speed;
+		float vx = (float) -MathLookup.sin(ry) * vxz;
+		float vz = (float) -MathLookup.cos(ry) * vxz;
 		return new Bullet(vx, vy, vz, px, py, pz, initialHealth, shotByPlayer);
 	}
 }

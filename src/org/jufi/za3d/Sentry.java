@@ -2,14 +2,14 @@ package org.jufi.za3d;
 
 import java.nio.FloatBuffer;
 
-import org.jufi.lwjglutil.ResourceLoader;
+import org.jufi.lwjglutil.*;
 import org.lwjgl.BufferUtils;
 
 import static org.lwjgl.opengl.GL11.*;
 
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.Renderable;
 
-public class Sentry extends Block {
+public class Sentry extends Block implements Renderable {
     private int health;
     
     public Sentry(float px, float py, float pz) {
@@ -46,44 +46,44 @@ public class Sentry extends Block {
         float zmax = pz + 0.5f;
 
     	glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
-        GL11.glBegin(GL_QUADS);
-	        FloatBuffer color = BufferUtils.createFloatBuffer(4);
-	        color.put(cr).put(cg).put(cb).put(1).flip();
-	        GL11.glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
-	        color = BufferUtils.createFloatBuffer(4);
-	        color.put(0.3f).put(0.3f).put(0.3f).put(1).flip();
-	        GL11.glMaterial(GL_FRONT, GL_SPECULAR, color);
-	        
-	        GL11.glNormal3f(-1, 0, 0);
-	        GL11.glVertex3f(xmin, ymin, zmax);
-	        GL11.glVertex3f(xmin, ymax, zmax);
-	        GL11.glVertex3f(xmin, ymax, zmin);
-	        GL11.glVertex3f(xmin, ymin, zmin);
-	        GL11.glNormal3f(1, 0, 0);
-	        GL11.glVertex3f(xmax, ymin, zmin);
-	        GL11.glVertex3f(xmax, ymax, zmin);
-	        GL11.glVertex3f(xmax, ymax, zmax);
-	        GL11.glVertex3f(xmax, ymin, zmax);
-	        GL11.glNormal3f(0, 0, -1);
-	        GL11.glVertex3f(xmin, ymin, zmin);
-	        GL11.glVertex3f(xmin, ymax, zmin);
-	        GL11.glVertex3f(xmax, ymax, zmin);
-	        GL11.glVertex3f(xmax, ymin, zmin);
-	        GL11.glNormal3f(0, 0, 1);
-	        GL11.glVertex3f(xmax, ymin, zmax);
-	        GL11.glVertex3f(xmax, ymax, zmax);
-	        GL11.glVertex3f(xmin, ymax, zmax);
-	        GL11.glVertex3f(xmin, ymin, zmax);
-	        GL11.glNormal3f(0, -1, 0);
-	        GL11.glVertex3f(xmin, ymin, zmax);
-	        GL11.glVertex3f(xmin, ymin, zmin);
-	        GL11.glVertex3f(xmax, ymin, zmin);
-	        GL11.glVertex3f(xmax, ymin, zmax);
-	        GL11.glNormal3f(0, 1, 0);
-	        GL11.glVertex3f(xmin, ymax, zmin);
-	        GL11.glVertex3f(xmin, ymax, zmax);
-	        GL11.glVertex3f(xmax, ymax, zmax);
-	        GL11.glVertex3f(xmax, ymax, zmin);
-        GL11.glEnd();
+        FloatBuffer color = BufferUtils.createFloatBuffer(4);
+        color.put(cr).put(cg).put(cb).put(1).flip();
+        glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
+        color = BufferUtils.createFloatBuffer(4);
+        color.put(0.3f).put(0.3f).put(0.3f).put(1).flip();
+        glMaterial(GL_FRONT, GL_SPECULAR, color);
+        glBegin(GL_QUADS);
+			
+	        glNormal3f(-1, 0, 0);
+	        glVertex3f(xmin, ymin, zmax);
+	        glVertex3f(xmin, ymax, zmax);
+	        glVertex3f(xmin, ymax, zmin);
+	        glVertex3f(xmin, ymin, zmin);
+	        glNormal3f(1, 0, 0);
+	        glVertex3f(xmax, ymin, zmin);
+	        glVertex3f(xmax, ymax, zmin);
+	        glVertex3f(xmax, ymax, zmax);
+	        glVertex3f(xmax, ymin, zmax);
+	        glNormal3f(0, 0, -1);
+	        glVertex3f(xmin, ymin, zmin);
+	        glVertex3f(xmin, ymax, zmin);
+	        glVertex3f(xmax, ymax, zmin);
+	        glVertex3f(xmax, ymin, zmin);
+	        glNormal3f(0, 0, 1);
+	        glVertex3f(xmax, ymin, zmax);
+	        glVertex3f(xmax, ymax, zmax);
+	        glVertex3f(xmin, ymax, zmax);
+	        glVertex3f(xmin, ymin, zmax);
+	        glNormal3f(0, -1, 0);
+	        glVertex3f(xmin, ymin, zmax);
+	        glVertex3f(xmin, ymin, zmin);
+	        glVertex3f(xmax, ymin, zmin);
+	        glVertex3f(xmax, ymin, zmax);
+	        glNormal3f(0, 1, 0);
+	        glVertex3f(xmin, ymax, zmin);
+	        glVertex3f(xmin, ymax, zmax);
+	        glVertex3f(xmax, ymax, zmax);
+	        glVertex3f(xmax, ymax, zmin);
+        glEnd();
     }
 }

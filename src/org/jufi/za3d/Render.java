@@ -2,9 +2,11 @@ package org.jufi.za3d;
 
 import static org.lwjgl.opengl.GL11.*;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.List;
 
+import org.jufi.lwjglutil.*;
 import org.lwjgl.BufferUtils;
 
 public class Render {
@@ -43,25 +45,30 @@ public class Render {
 		color = BufferUtils.createFloatBuffer(4);
 		color.put(1).put(0.8f).put(0.6f).put(1).flip();
 		glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);
-		glPushMatrix();
-			glTranslatef(0, 1, 0);
-			Main.obj_fencelong.render();
-			glTranslatef(0, 0, 128);
-			Main.obj_fencelong.render();
-			glRotatef(90, 0, 1, 0);
-			Main.obj_fencelong.render();
-			glTranslatef(0, 0, 128);
-			Main.obj_fencelong.render();
-		glPopMatrix();
-		glPushMatrix();
-			Main.obj_fence.render();
-			glTranslatef(128, 0, 0);
-			Main.obj_fence.render();
-			glTranslatef(0, 0, 128);
-			Main.obj_fence.render();
-			glTranslatef(-128, 0, 0);
-			Main.obj_fence.render();
-		glPopMatrix();
+	}
+	public static void initDisplayLists() throws IOException {
+		Main.dl_zombiebody = glGenLists(1);
+		glNewList(Main.dl_zombiebody, GL_COMPILE); zombiebody(); glEndList();
+		Main.dl_zombiehead = glGenLists(1);
+		glNewList(Main.dl_zombiehead, GL_COMPILE); zombiehead(); glEndList();
+		Main.dl_bullet = glGenLists(1);
+		glNewList(Main.dl_bullet, GL_COMPILE); new Model(System.getProperty("user.dir") + "/res/obj/bullet.obj").render(); glEndList();
+		Main.dl_grenade = glGenLists(1);
+		glNewList(Main.dl_grenade, GL_COMPILE); new Model(System.getProperty("user.dir") + "/res/obj/grenade.obj").render(); glEndList();
+		Main.dl_cexplosive = glGenLists(1);
+		glNewList(Main.dl_cexplosive, GL_COMPILE);new Model(System.getProperty("user.dir") + "/res/obj/item2.obj").render(); glEndList();
+		Main.dl_gun = new int[3];
+		Main.dl_gun[0] = glGenLists(1);
+		glNewList(Main.dl_gun[0], GL_COMPILE); new Model(System.getProperty("user.dir") + "/res/obj/gun0.obj").render(); glEndList();
+		Main.dl_gun[1] = glGenLists(1);
+		glNewList(Main.dl_gun[1], GL_COMPILE); new Model(System.getProperty("user.dir") + "/res/obj/gun1.obj").render(); glEndList();
+		Main.dl_gun[2] = glGenLists(1);
+		glNewList(Main.dl_gun[2], GL_COMPILE); new Model(System.getProperty("user.dir") + "/res/obj/gun2.obj").render(); glEndList();
+		Main.dl_floorandmap = glGenLists(1);
+		glNewList(Main.dl_floorandmap, GL_COMPILE);
+		floor();
+		new Model(System.getProperty("user.dir") + "/res/map/map.obj").render();
+		glEndList();
 	}
 	
 	public static void zombiebody() {

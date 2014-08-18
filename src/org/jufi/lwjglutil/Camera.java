@@ -78,19 +78,19 @@ public class Camera {
 	
 	public void moveNoClip(boolean dir, float amount) {
 		if (dir) {
-			tx -= amount * Math.cos(Math.toRadians(90 - ry)) * Math.cos(Math.toRadians(rx));
-			ty += amount * Math.sin(Math.toRadians(rx));
-			tz -= amount * Math.sin(Math.toRadians(90 - ry)) * Math.cos(Math.toRadians(rx));
+			tx -= amount * MathLookup.cos(90 - ry) * MathLookup.cos(rx);
+			ty += amount * MathLookup.sin(rx);
+			tz -= amount * MathLookup.sin(90 - ry) * MathLookup.cos(rx);
 		} else {
-			tx -= amount * Math.cos(Math.toRadians(-ry));
-			tz -= amount * Math.sin(Math.toRadians(-ry));
+			tx -= amount * MathLookup.cos(-ry);
+			tz -= amount * MathLookup.sin(-ry);
 		}
 	}
 	public void moveNoY(float dir, float amount) {
 		float otz = tz;
 		float otx = tx;
-		tz -= amount * Math.sin(Math.toRadians(-ry + 90 * dir));
-		tx -= amount * Math.cos(Math.toRadians(-ry + 90 * dir));
+		tz -= amount * MathLookup.sin(-ry + 90 * dir);
+		tx -= amount * MathLookup.cos(-ry + 90 * dir);
 		if (ppmap.collides(tx, ty, tz) && !ppmap.collides(otx, ty, otz)) {
 			tx = otx;
 			tz = otz;
