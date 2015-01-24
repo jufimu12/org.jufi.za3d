@@ -11,6 +11,10 @@ import org.lwjgl.BufferUtils;
 
 public class Render {
 	
+	private Render() {
+		
+	}
+	
 	public static final int ZA_FLOOR_RES = 8; // (ZA_FLOOR_END - ZA_FLOOR_START) / ZA_FLOOR_RES
 	public static final int ZA_FLOOR_START = -256;
 	public static final int ZA_FLOOR_END = 384;
@@ -123,15 +127,8 @@ public class Render {
 	}
 	
 	public static void minimap(float playerX, float playerZ, List<Zombie> zombies) {
-		glBegin(GL_QUADS);
 		glColor3f(0, 0, 0);
-			glVertex2i(64, 64);
-			glVertex2i(192, 64);
-			glVertex2i(192, 192);
-			glVertex2i(64, 192);
-		glEnd();
-		glBegin(GL_LINE_LOOP);
-		glColor3f(0, 1, 0);
+		glBegin(GL_QUADS);
 			glVertex2i(64, 64);
 			glVertex2i(192, 64);
 			glVertex2i(192, 192);
@@ -148,6 +145,13 @@ public class Render {
 					glVertex2f(playerX + 64 + i, (64 - playerZ) + 128 + j);
 				}
 			}
+		glEnd();
+		glColor3f(0, 1, 0);
+		glBegin(GL_LINE_LOOP);
+			glVertex2i(64, 64);
+			glVertex2i(192, 64);
+			glVertex2i(192, 192);
+			glVertex2i(64, 192);
 		glEnd();
 	}
 	

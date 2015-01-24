@@ -206,6 +206,7 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			SimpleText.drawString("Game Over", 750, 500);
 			SimpleText.drawString("Your Score " + String.valueOf(score), 720, 475);
 			SimpleText.drawString("Press N for a new Game", 690, 450);
+			SimpleText.drawString("Press ESCAPE to exit", 700, 425);
 		} else if (gamePaused) {
 			SimpleText.drawString("Game paused", 750, 500);
 			SimpleText.drawString("Press LCTRL or E to continue", 690, 475);
@@ -223,7 +224,7 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			listenmenu();
 		}
 		
-		if (Keyboard.isKeyDown(KEY_LCONTROL) || Keyboard.isKeyDown(KEY_E)) {// Pause
+		if ((Keyboard.isKeyDown(KEY_LCONTROL) || Keyboard.isKeyDown(KEY_E)) && !gameOver) {// Pause
 		if (!lctrlDown) {
 			gamePaused = !gamePaused;
 			Mouse.setGrabbed(!Mouse.isGrabbed());
@@ -513,7 +514,7 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			if (cam.getTx() > 128) cam.setTx(128);
 			if (cam.getTz() < 0) cam.setTz(0);
 			if (cam.getTz() > 128) cam.setTz(128);
-		}
+		} else if (gameOver && Keyboard.isKeyDown(KEY_ESCAPE)) Main.exit(0);
 	}
 	
 	private void shoot() {
