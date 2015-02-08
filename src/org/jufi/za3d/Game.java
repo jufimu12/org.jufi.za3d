@@ -4,6 +4,7 @@ import org.jufi.lwjglutil.*;
 import org.jufi.lwjglutil.Camera.CameraMode;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.input.Keyboard.*;
 
@@ -46,8 +47,8 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			initfullscreen = false;
 			break;
 		case 2:
-			initresX = Display.getDesktopDisplayMode().getWidth();
-			initresY = Display.getDesktopDisplayMode().getHeight();
+			initresX = -1;
+			initresY = -1;
 			initfullscreen = true;
 			break;
 		default:
@@ -154,7 +155,9 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			glPopMatrix();
 		}
 		glEnable(GL_CULL_FACE);
+		glUseProgram(sh_main[2]);
 		Render.skybox();
+		glUseProgram(sh_main[1]);
 	}
 	
 	@Override
@@ -188,28 +191,27 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			glVertex2f(1355 + barwidth, 115);
 			glVertex2f(1355, 115);
 		glEnd();
-		glColor3f(0.0f, 0.5f, 1.0f);// Texts
-		SimpleText.drawString("HP", 1330, 62);
-		SimpleText.drawString("STAMINA", 1290, 102);
-		SimpleText.drawString("ITEM SELECTED: " + itemnames[selecteditem] + " - " + items[selecteditem] + " left", 1250, 142);
-		SimpleText.drawString("GRENADES: " + grenadeamt, 1250,  162);
-		SimpleText.drawString("HP    " + hp, 1, 860);
-		SimpleText.drawString("Score " + score, 1, 850);
-		SimpleText.drawString("Coins " + coins, 1, 840);
+		Draw.drawString("HP", 1330, 62, 0.0f, 0.5f, 1.0f);// Texts
+		Draw.drawString("STAMINA", 1290, 102, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("ITEM SELECTED: " + itemnames[selecteditem] + " - " + items[selecteditem] + " left", 1250, 142, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("GRENADES: " + grenadeamt, 1250,  162, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("HP    " + hp, 1, 860, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("Score " + score, 1, 850, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("Coins " + coins, 1, 840, 0.0f, 0.5f, 1.0f);
 		Runtime runtime = Runtime.getRuntime();
-		SimpleText.drawString("Level " + String.valueOf((int) Math.floor(spawnSpeed)), 1500, 890);
-		SimpleText.drawString("RAM  " + String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / 1048576), 1500, 880);
-		SimpleText.drawString("posX " + String.valueOf(Math.round(cam.getTx())), 1500, 870);
-		SimpleText.drawString("posY " + String.valueOf(Math.round(cam.getTy())), 1500, 860);
-		SimpleText.drawString("posZ " + String.valueOf(Math.round(cam.getTz())), 1500, 850);
+		Draw.drawString("Level " + String.valueOf((int) Math.floor(spawnSpeed)), 1500, 890, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("RAM  " + String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / 1048576), 1500, 880, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("posX " + String.valueOf(Math.round(cam.getTx())), 1500, 870, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("posY " + String.valueOf(Math.round(cam.getTy())), 1500, 860, 0.0f, 0.5f, 1.0f);
+		Draw.drawString("posZ " + String.valueOf(Math.round(cam.getTz())), 1500, 850, 0.0f, 0.5f, 1.0f);
 		if (gameOver) {
-			SimpleText.drawString("Game Over", 750, 500);
-			SimpleText.drawString("Your Score " + String.valueOf(score), 720, 475);
-			SimpleText.drawString("Press N for a new Game", 690, 450);
-			SimpleText.drawString("Press ESCAPE to exit", 700, 425);
+			Draw.drawStringBG("Game Over", 750, 500, 0.0f, 0.5f, 1.0f);
+			Draw.drawStringBG("Your Score " + String.valueOf(score), 720, 475, 0.0f, 0.5f, 1.0f);
+			Draw.drawStringBG("Press N for a new Game", 690, 450, 0.0f, 0.5f, 1.0f);
+			Draw.drawStringBG("Press ESCAPE to exit", 700, 425, 0.0f, 0.5f, 1.0f);
 		} else if (gamePaused) {
-			SimpleText.drawString("Game paused", 750, 500);
-			SimpleText.drawString("Press LCTRL or E to continue", 690, 475);
+			Draw.drawStringBG("Game paused", 750, 500, 0.0f, 0.5f, 1.0f);
+			Draw.drawStringBG("Press LCTRL or E to continue", 690, 475, 0.0f, 0.5f, 1.0f);
 		}
 		if (gamePaused) {
 			rendermenu();
@@ -314,8 +316,8 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			if (enable_shader) {
 				sh_main = new int[3];
 				sh_main[0] = ResourceLoader.loadShader("res/shader/3d.vsh", "res/shader/3d.fsh")[0];
-				sh_main[1] = ResourceLoader.loadShader("res/shader/2d.vsh", "res/shader/2d.fsh")[0];
-				sh_main[2] = sh_main[1];
+				sh_main[1] = ResourceLoader.loadShader("res/shader/3dnl.vsh", "res/shader/3dnl.fsh")[0];
+				sh_main[2] = ResourceLoader.loadShader("res/shader/2d.vsh", "res/shader/2d.fsh")[0];
 			}
 			
 			Main.tex_zombey = ResourceLoader.loadTexture(System.getProperty("user.dir") + "/res/img/z0mb3y.png");
@@ -352,17 +354,17 @@ public class Game extends org.jufi.lwjglutil.Engine {
 	}
 
 	@Override
-	protected CameraMode initCameraMode() {
-		Camera.CameraMode m = new Camera.CameraMode();
+	protected void initCameraMode(CameraMode m) {
+		if (initresX == -1) initresX = Display.getDesktopDisplayMode().getWidth();
+		if (initresY == -1) initresY = Display.getDesktopDisplayMode().getHeight();
 		m.setDisplayRes(initresX, initresY);
 		m.setLightpos(-1, 0.5f, -0.5f, 0);
 		m.setMap(pphysmap);
-		m.setOptions(initfullscreen, 2);
+		m.setOptions(initfullscreen, 2, true);
 		m.setOrthoRes(1600, 900);
 		m.setPerspective(70, 0.001f, 2000);
 		m.setTitle("ZombieApocalypse 3D");
 		m.setTransformation(64, 0, 64, 0, 0, 0);
-		return m;
 	}
 	
 	@Override
@@ -381,25 +383,25 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			if (Keyboard.isKeyDown(KEY_W)) {
 				if (Keyboard.isKeyDown(KEY_LSHIFT) && runtimeleft >= 1 && !Mouse.isButtonDown(1)) {
 					runtimeleft--;
-					cam.moveNoY(1, 0.1f * runfactor);
+					cam.moveNoY(true, 0.1f * runfactor);
 					if (cam.getFov() < 80) {
 						cam.setFov(cam.getFov() + 1);
 					}
 				} else {
-					cam.moveNoY(1, 0.1f);
+					cam.moveNoY(true, 0.1f);
 					if (cam.getFov() > 70) {
 						cam.setFov(cam.getFov() - 1);
 					}
 				}
 			}
 			if (Keyboard.isKeyDown(KEY_S)) {
-				cam.moveNoY(1, -0.1f);
+				cam.moveNoY(true, -0.1f);
 			}
 			if (Keyboard.isKeyDown(KEY_A)) {
-				cam.moveNoY(0, 0.1f);
+				cam.moveNoY(false, 0.1f);
 			}
 			if (Keyboard.isKeyDown(KEY_D)) {
-				cam.moveNoY(0, -0.1f);
+				cam.moveNoY(false, -0.1f);
 			}
 			if (Keyboard.isKeyDown(KEY_ADD)) {
 				if (canmodifyrunfactor && !runfasterdown && runfactor + 0.5f <= 5) {
@@ -466,16 +468,16 @@ public class Game extends org.jufi.lwjglutil.Engine {
 				fDown = false;
 			}
 			
-			if (cam.setTy(cam.getTy() - fallspeed, true)) fallspeed = 0;
+			if (cam.setTy(cam.getTy() - fallspeed)) fallspeed = 0;
 			fallspeed += 0.01f;
 			if (cam.getTy() > 32) {
-				cam.setTy(32, false);
+				cam.setTy(32);
 			}
 			if (cam.getTy() < 0) {
 				if (fallspeed > 0.1f) {
 					fallspeed = 0.1f;
 				}
-				cam.setTy(0, false);
+				cam.setTy(0);
 			}
 			
 			if (Mouse.isButtonDown(1)) {
@@ -823,75 +825,74 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			glVertex2i(1530, 602);
 			glVertex2i(1530, 630);
 		glEnd();
-		glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
+		glBindTexture(GL_TEXTURE_2D, ResourceLoader.white);
 		
-		glColor3f(0, 0, 1);// Text
-		SimpleText.drawString("SHOP", 184, 828);
-		SimpleText.drawString("COINS:" + String.valueOf(coins), 152, 808);
+		Draw.drawString("SHOP", 184, 828, 0, 0, 1);// Text
+		Draw.drawString("COINS:" + String.valueOf(coins), 152, 808, 0, 0, 1);
 		
-		SimpleText.drawString("SHOOTING FREQUENCY - " + String.valueOf(shootSpeedCost) + " COINS", 72, 778);
-		SimpleText.drawString("INCREASES SHOOTING FREQUENCY", 72, 764);
+		Draw.drawString("SHOOTING FREQUENCY - " + String.valueOf(shootSpeedCost) + " COINS", 72, 778, 0, 0, 1);
+		Draw.drawString("INCREASES SHOOTING FREQUENCY", 72, 764, 0, 0, 1);
 		
-		SimpleText.drawString("MULTIHIT - 500 COINS", 72, 738);
-		SimpleText.drawString("BULLETS CAN HIT MULTIPLE ENEMIES", 72, 724);
+		Draw.drawString("MULTIHIT - 500 COINS", 72, 738, 0, 0, 1);
+		Draw.drawString("BULLETS CAN HIT MULTIPLE ENEMIES", 72, 724, 0, 0, 1);
 		
-		SimpleText.drawString("BULLET SPEED - 100 COINS", 72, 698);
-		SimpleText.drawString("BULLETS FLY FASTER", 72, 684);
+		Draw.drawString("BULLET SPEED - 100 COINS", 72, 698, 0, 0, 1);
+		Draw.drawString("BULLETS FLY FASTER", 72, 684, 0, 0, 1);
 		
-		SimpleText.drawString("RUN SPEED MODIFIER - 750 COINS", 72, 658);
-		SimpleText.drawString("+ FOR INCREASE, - FOR DECREASE", 72, 644);
+		Draw.drawString("RUN SPEED MODIFIER - 750 COINS", 72, 658, 0, 0, 1);
+		Draw.drawString("+ FOR INCREASE, - FOR DECREASE", 72, 644, 0, 0, 1);
 		
-		SimpleText.drawString("MULTISHOT - 500 COINS", 72, 618);
-		SimpleText.drawString("FIRES MULTIPLE BULLETS AT ONCE", 72, 604);
+		Draw.drawString("MULTISHOT - 500 COINS", 72, 618, 0, 0, 1);
+		Draw.drawString("FIRES MULTIPLE BULLETS AT ONCE", 72, 604, 0, 0, 1);
 		
-		SimpleText.drawString("INCREASE MAX HP - 5000 COINS", 72, 578);
-		SimpleText.drawString("INCREASES MAXIMUM HEALTH POINTS", 72, 564);
+		Draw.drawString("INCREASE MAX HP - 5000 COINS", 72, 578, 0, 0, 1);
+		Draw.drawString("INCREASES MAXIMUM HEALTH POINTS", 72, 564, 0, 0, 1);
 		
-		SimpleText.drawString("INCREASE STAMINA REG - 100 COINS", 72, 538);
-		SimpleText.drawString("STAMINA REGENERATES FASTER", 72, 524);
+		Draw.drawString("INCREASE STAMINA REG - 100 COINS", 72, 538, 0, 0, 1);
+		Draw.drawString("STAMINA REGENERATES FASTER", 72, 524, 0, 0, 1);
 		
-		SimpleText.drawString("ARMOR - 10000 COINS", 72, 498);
-		SimpleText.drawString("YOU WILL GET LESS DAMAGE", 72, 484);
+		Draw.drawString("ARMOR - 10000 COINS", 72, 498, 0, 0, 1);
+		Draw.drawString("YOU WILL GET LESS DAMAGE", 72, 484, 0, 0, 1);
 		
-		SimpleText.drawString("JETPACK - 1500 COINS", 72, 458);
-		SimpleText.drawString("LET YOU FLY, PRESS SPACE TO USE", 72, 444);
+		Draw.drawString("JETPACK - 1500 COINS", 72, 458, 0, 0, 1);
+		Draw.drawString("LET YOU FLY, PRESS SPACE TO USE", 72, 444, 0, 0, 1);
 		
-		SimpleText.drawString("INCREASE STAMINA CAP - 250 COINS", 72, 418);
-		SimpleText.drawString("YOU CAN STORE MORE STAMINA", 72, 404);
+		Draw.drawString("INCREASE STAMINA CAP - 250 COINS", 72, 418, 0, 0, 1);
+		Draw.drawString("YOU CAN STORE MORE STAMINA", 72, 404, 0, 0, 1);
 		
-		SimpleText.drawString("ACCURACY - 100 COINS", 72, 378);
-		SimpleText.drawString("YOU SHOOT MORE ACCURATE", 72, 364);
+		Draw.drawString("ACCURACY - 100 COINS", 72, 378, 0, 0, 1);
+		Draw.drawString("YOU SHOOT MORE ACCURATE", 72, 364, 0, 0, 1);
 		
-		SimpleText.drawString("RECOIL - 200 COINS", 72, 338);
-		SimpleText.drawString("YOU HAVE LESS RECOIL", 72, 324);
+		Draw.drawString("RECOIL - 200 COINS", 72, 338, 0, 0, 1);
+		Draw.drawString("YOU HAVE LESS RECOIL", 72, 324, 0, 0, 1);
 		
-		SimpleText.drawString("MEDIPACK - " + String.valueOf(medikitCost) + " COINS", 1272, 778);
-		SimpleText.drawString("FILLS UP YOUR HP", 1272, 764);
+		Draw.drawString("MEDIPACK - " + String.valueOf(medikitCost) + " COINS", 1272, 778, 0, 0, 1);
+		Draw.drawString("FILLS UP YOUR HP", 1272, 764, 0, 0, 1);
 		
-		SimpleText.drawString("SENTRYGUN - ITEM - 500 COINS", 1272, 738);
-		SimpleText.drawString("SHOOTS AT YOUR ENEMIES", 1272, 724);
+		Draw.drawString("SENTRYGUN - ITEM - 500 COINS", 1272, 738, 0, 0, 1);
+		Draw.drawString("SHOOTS AT YOUR ENEMIES", 1272, 724, 0, 0, 1);
 		
-		SimpleText.drawString("C4 EXPLOSIVE - ITEM - 100 COINS", 1272, 698);
-		SimpleText.drawString("DETONATE BY PRESSING C", 1272, 684);
+		Draw.drawString("C4 EXPLOSIVE - ITEM - 100 COINS", 1272, 698, 0, 0, 1);
+		Draw.drawString("DETONATE BY PRESSING C", 1272, 684, 0, 0, 1);
 		
-		SimpleText.drawString("10 WEBS - ITEM - 250 COINS", 1272, 658);
-		SimpleText.drawString("IT CAN HOLD YOUR ENEMIES BACK", 1272, 644);
+		Draw.drawString("10 WEBS - ITEM - 250 COINS", 1272, 658, 0, 0, 1);
+		Draw.drawString("IT CAN HOLD YOUR ENEMIES BACK", 1272, 644, 0, 0, 1);
 		
-		SimpleText.drawString("GRENADE - ITEM - 100 COINS", 1272, 618);
-		SimpleText.drawString("THROW BY PRESSING G", 1272, 604);
+		Draw.drawString("GRENADE - ITEM - 100 COINS", 1272, 618, 0, 0, 1);
+		Draw.drawString("THROW BY PRESSING G", 1272, 604, 0, 0, 1);
 		
 		
-		SimpleText.drawString("CONTROLS", 410, 830);
-		SimpleText.drawString("W A S D", 410, 810);
-		SimpleText.drawString("LEFT MOUSE", 410, 800);
-		SimpleText.drawString("F", 410, 790);
-		SimpleText.drawString("NUMBERS", 410, 780);
-		SimpleText.drawString("WALK", 500, 810);
-		SimpleText.drawString("SHOOT", 500, 800);
-		SimpleText.drawString("USE ITEM", 500, 790);
-		SimpleText.drawString("SELECT ITEM", 500, 780);
+		Draw.drawString("CONTROLS", 410, 830, 0, 0, 1);
+		Draw.drawString("W A S D", 410, 810, 0, 0, 1);
+		Draw.drawString("LEFT MOUSE", 410, 800, 0, 0, 1);
+		Draw.drawString("F", 410, 790, 0, 0, 1);
+		Draw.drawString("NUMBERS", 410, 780, 0, 0, 1);
+		Draw.drawString("WALK", 500, 810, 0, 0, 1);
+		Draw.drawString("SHOOT", 500, 800, 0, 0, 1);
+		Draw.drawString("USE ITEM", 500, 790, 0, 0, 1);
+		Draw.drawString("SELECT ITEM", 500, 780, 0, 0, 1);
 		
-		SimpleText.drawString("EXIT", 402, 730);
+		Draw.drawString("EXIT", 402, 730, 0, 0, 1);
 	}
 	
 	private void listenmenu() {

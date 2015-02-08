@@ -39,7 +39,7 @@ public class Web extends Block implements Renderable {
         float ymax = py + 1.0f;
         float zmin = pz - 0.5f;
         float zmax = pz + 0.5f;
-    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
+    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.white);
         FloatBuffer color = BufferUtils.createFloatBuffer(4);
         color.put(cr).put(cg).put(cb).put(1).flip();
         GL11.glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);

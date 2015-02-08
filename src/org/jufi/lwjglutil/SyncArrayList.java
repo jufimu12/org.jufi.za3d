@@ -73,11 +73,7 @@ public class SyncArrayList<T> extends ArrayList<T> {
 	private void busywait() {
 		while (busy) {
 			if (SLEEPWHENBUSY) {
-				try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				Thread.yield();
 			}
 		}
 	}

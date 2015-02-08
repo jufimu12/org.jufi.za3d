@@ -45,7 +45,7 @@ public class Sentry extends Block implements Renderable {
         float zmin = pz - 0.5f;
         float zmax = pz + 0.5f;
 
-    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
+    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.white);
         FloatBuffer color = BufferUtils.createFloatBuffer(4);
         color.put(cr).put(cg).put(cb).put(1).flip();
         glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);

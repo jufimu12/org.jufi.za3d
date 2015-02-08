@@ -20,21 +20,11 @@ public class FPSCounter {
         return fps;
     }
     public void dispFPS(int resYOrtho, float size) {
-    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
-    	int len = String.valueOf(fps).length() * 8;
+    	glBindTexture(GL_TEXTURE_2D, ResourceLoader.white);
     	
     	glTranslatef(0, resYOrtho, 0);
     	glScalef(size, size, 1);
     	
-    	glColor3f(0, 0, 0);
-		glBegin(GL_QUADS);
-			glVertex2f(0, 0);
-			glVertex2f(0, -10);
-			glVertex2f(len, -10);
-			glVertex2f(len, 0);
-		glEnd();
-		
-		glColor3f(0, 1, 0);
-		SimpleText.drawString(fps, 0, -9);
+		Draw.drawStringBG(fps, 0, -9, 0, 1, 0);
     }
 }

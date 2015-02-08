@@ -14,7 +14,7 @@ public class MathLookup {
 	}
 	
 	public static double sin(int angle) {
-		return sin[((angle % 360) + 360) + 360];
+		return sin[(angle % 360) + 360];
 	}
 	public static double cos(int angle) {
 		return cos[(angle % 360) + 360];

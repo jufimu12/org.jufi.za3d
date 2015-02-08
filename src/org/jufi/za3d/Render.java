@@ -45,7 +45,7 @@ public class Render {
 			}
 		glEnd();
 		
-		glBindTexture(GL_TEXTURE_2D, ResourceLoader.whitePixelTexID);
+		glBindTexture(GL_TEXTURE_2D, ResourceLoader.white);
 		color = BufferUtils.createFloatBuffer(4);
 		color.put(1).put(0.8f).put(0.6f).put(1).flip();
 		glMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color);

@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.openal.AL;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
@@ -22,10 +23,11 @@ public class Camera {
 	private FloatBuffer lightpos;
 	private float tx, ty, tz, rx, ry, rz;
 	private float fov;
+	private boolean physics;
 	
 	public Camera(PhysMap ppmap, FloatBuffer lightpos, String title,
 			float znear, float zfar, int resxdisplay, int resydisplay, int resxortho, int resyortho,
-			boolean fullscreen, float playerHeight,
+			boolean fullscreen, float playerHeight, boolean physics,
 			float tx, float ty, float tz, float rx, float ry, float rz, float fov) {
 		this.ppmap = ppmap;
 		this.lightpos = lightpos;
@@ -38,6 +40,7 @@ public class Camera {
 		this.resyortho = resyortho;
 		this.fullscreen = fullscreen;
 		this.playerHeight = playerHeight;
+		this.physics = physics;
 		this.tx = tx;
 		this.ty = ty;
 		this.tz = tz;
@@ -66,6 +69,7 @@ public class Camera {
 		ry = m.ry;
 		rz = m.rz;
 		fov = m.fov;
+		physics = m.physics;
 	}
 	
 	public void tick() {
@@ -76,23 +80,49 @@ public class Camera {
 		glLight(GL_LIGHT0, GL_POSITION, lightpos);
 	}
 	
-	public void moveNoClip(boolean dir, float amount) {
-		if (dir) {
-			tx -= amount * MathLookup.cos(90 - ry) * MathLookup.cos(rx);
+	public void moveY(boolean zdir, float amount) {
+		float otx = tx;
+		float oty = ty;
+		float otz = tz;
+		if (zdir) {
+			tx -= amount * MathLookup.sin(ry) * MathLookup.cos(rx);
 			ty += amount * MathLookup.sin(rx);
-			tz -= amount * MathLookup.sin(90 - ry) * MathLookup.cos(rx);
+			tz -= amount * MathLookup.cos(ry) * MathLookup.cos(rx);
 		} else {
 			tx -= amount * MathLookup.cos(-ry);
-			tz -= amount * MathLookup.sin(-ry);
+			tz += amount * MathLookup.sin(ry);
+		}
+		if (physics && ppmap.collides(tx, ty, tz) && !ppmap.collides(otx, oty, otz)) {
+			tx = otx;
+			ty = oty;
+			tz = otz;
 		}
 	}
-	public void moveNoY(float dir, float amount) {
-		float otz = tz;
+	public void moveNoY(boolean zdir, float amount) {
 		float otx = tx;
-		tz -= amount * MathLookup.sin(-ry + 90 * dir);
-		tx -= amount * MathLookup.cos(-ry + 90 * dir);
-		if (ppmap.collides(tx, ty, tz) && !ppmap.collides(otx, ty, otz)) {
+		float otz = tz;
+		if (zdir) {
+			tx -= amount * MathLookup.sin(ry);
+			tz -= amount * MathLookup.cos(ry);
+		} else {
+			tx -= amount * MathLookup.cos(-ry);
+			tz += amount * MathLookup.sin(ry);
+		}
+		if (physics && ppmap.collides(tx, ty, tz) && !ppmap.collides(otx, ty, otz)) {
 			tx = otx;
+			tz = otz;
+		}
+	}
+	public void moveInDir(float rx, float ry, float amount) {
+		float otx = tx;
+		float oty = ty;
+		float otz = tz;
+		tx -= amount * MathLookup.sin(ry) * MathLookup.cos(rx);
+		ty += amount * MathLookup.sin(rx);
+		tz -= amount * MathLookup.cos(ry) * MathLookup.cos(rx);
+		if (physics && ppmap.collides(tx, ty, tz) && !ppmap.collides(otx, oty, otz)) {
+			tx = otx;
+			ty = oty;
 			tz = otz;
 		}
 	}
@@ -129,7 +159,7 @@ public class Camera {
 	public void init3d() {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(fov, (float)Display.getWidth() / Display.getHeight(), znear, zfar);
+		gluPerspective(fov, (float) Display.getWidth() / Display.getHeight(), znear, zfar);
 		glMatrixMode(GL_MODELVIEW);
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -153,11 +183,25 @@ public class Camera {
 		icon[1] = ResourceLoader.loadTextureIntoByteBuffer(System.getProperty("user.dir") + "/res/img/icon32.png");
 		Display.setIcon(icon);
 		
-		Display.create(new PixelFormat(8, 8, 0, 8));
+		try {
+			Display.create(new PixelFormat(8, 24, 0, 16));
+		} catch (LWJGLException e) {
+			System.err.println("Failed to init display:");
+			System.err.println(e.getMessage());
+			System.err.println("Trying other mode...");
+			try {
+				Display.create(new PixelFormat(8, 8, 0, 8));
+			} catch (LWJGLException e1) {
+				System.err.println(e.getMessage());
+				System.err.println("Loading default mode...");
+				Display.create();
+			}
+		}
 	}
 	
-	public static void cleanup() {
+	public void cleanup() {
 		if (Display.isCreated()) Display.destroy();
+		if (AL.isCreated()) AL.destroy();
 	}
 	
 	public float getTx() {
@@ -169,8 +213,8 @@ public class Camera {
 	public float getTy() {
 		return ty;
 	}
-	public boolean setTy(float ty, boolean collision) {
-		if (collision && ppmap.collides(this.tx, ty, this.tz)) return true;
+	public boolean setTy(float ty) {
+		if (physics && ppmap.collides(this.tx, ty, this.tz)) return true;
 		this.ty = ty;
 		return false;
 	}
@@ -212,14 +256,14 @@ public class Camera {
 	}
 	
 	public static class CameraMode {
-		PhysMap ppmap;
-		FloatBuffer lightpos;
-		String title;
-		float tx, ty, tz, rx, ry, rz;
-		float fov, znear, zfar, playerHeight;
-		int resxdisplay, resydisplay;
-		int resxortho, resyortho;
-		boolean fullscreen;
+		private PhysMap ppmap;
+		private FloatBuffer lightpos;
+		private String title;
+		private float tx, ty, tz, rx, ry, rz;
+		private float fov, znear, zfar, playerHeight;
+		private int resxdisplay, resydisplay;
+		private int resxortho, resyortho;
+		private boolean fullscreen, physics;
 		
 		public void setMap(PhysMap ppmap) {
 			this.ppmap = ppmap;
@@ -243,9 +287,10 @@ public class Camera {
 			this.resxortho = x;
 			this.resyortho = y;
 		}
-		public void setOptions(boolean fullscreen, float playerHeight) {
+		public void setOptions(boolean fullscreen, float playerHeight, boolean physics) {
 			this.fullscreen = fullscreen;
 			this.playerHeight = playerHeight;
+			this.physics = physics;
 		}
 		public void setTransformation(float tx, float ty, float tz, float rx, float ry, float rz) {
 			this.tx = tx;
