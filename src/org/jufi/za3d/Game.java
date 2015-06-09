@@ -155,9 +155,9 @@ public class Game extends org.jufi.lwjglutil.Engine {
 			glPopMatrix();
 		}
 		glEnable(GL_CULL_FACE);
-		glUseProgram(sh_main[2]);
+		if (sh_main != null) glUseProgram(sh_main[2]);
 		Render.skybox();
-		glUseProgram(sh_main[1]);
+		if (sh_main != null) glUseProgram(sh_main[1]);
 	}
 	
 	@Override
